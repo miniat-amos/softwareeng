@@ -12,10 +12,8 @@ from MusicManager import MusicManager
 from ui import UI
 from Button import Button
 
-FRAME_RATE = 120
-PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
-
 FRAME_RATE = SETTINGS.FRAMERATE
+PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
 
 # Only used to display stuff without a camera class. Should be (0,0) when camera is used. 
 # DRAW_OFFSET = (200, 500)
@@ -47,7 +45,7 @@ ui = UI(player)
 clock = pygame.time.Clock()
 
 # Set up the camera
-camera = Camera(player, screen_width, screen_height)
+camera = Camera(player, SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT)
 
 # Set up the music manager
 music_manager = MusicManager()
@@ -108,6 +106,8 @@ def play():
 
     current_frame = 0
 
+    pre_screen = pygame.Surface((SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT))
+
     # Game loop1
     running = True
     while running:
@@ -126,7 +126,7 @@ def play():
 
         if (pygame.key.get_pressed()[pygame.K_l]):
             if (l_pressed == False):
-                newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/", (player.rect.centerx, player.rect.top-SETTINGS.HEIGHT), FRAME_RATE * 5)
+                newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/", (player.x, player.top-SETTINGS.WR_HEIGHT), FRAME_RATE * 5)
                 lightning_bolt_list.append(newl)
             l_pressed = True
         else:
@@ -140,9 +140,9 @@ def play():
             if (newr == 0):						# spawn new lightning (with 5 second duration)
                 l_x = random.randrange(-100,SETTINGS.WIDTH+100, 1)
                 if (player.direction_y == "up"):
-                    l_y = player.rect.centery-SETTINGS.HEIGHT
+                    l_y = player.y-SETTINGS.HEIGHT
                 else:
-                    l_y = player.rect.centery+SETTINGS.HEIGHT
+                    l_y = player.y+SETTINGS.HEIGHT
                 newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/",
                                 (l_x, l_y), FRAME_RATE * 5)
                 lightning_bolt_list.append(newl)
@@ -150,7 +150,7 @@ def play():
 
         # Object updates
         player.update()
-        player.set_points_increase_only(-player.rect.centery)
+        player.set_points_increase_only(-player.y)
         player.button_functions() # Functions for player values
         map.tick() # Update map	
         player.button_functions() #just functions for player values and stuff
@@ -172,7 +172,9 @@ def play():
         # Rendering
         map.fillRendergroup(render_group)
         render_group.appendTo(player, 3)
-        render_group.render(screen, camera) # Render everything within the render group
+        render_group.render(pre_screen, camera) # Render everything within the render group
+
+        pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)
 
         # Drawing the UI last
         ui.draw(screen, ui_font, WHITE)
@@ -187,8 +189,7 @@ def play():
         
         if i < 1:
             # print(map.getStats())
-            print(clock.get_fps())
-            #print(map.getStats())
+            # print(clock.get_fps())
             # print("Player Health =", player.health)
             i = PRINT_RATE
 

@@ -1,4 +1,5 @@
 import pygame
+import SETTINGS
 import time
 
 class MusicManager:
@@ -27,12 +28,12 @@ class MusicManager:
     # Play sound effect
     def play_soundfx(self, effect, volume=1):
         sound = pygame.mixer.Sound(effect)
-        sound.set_volume(volume)
+        sound.set_volume(volume * SETTINGS.VOL_SFX)
         sound.play()
 
     # Set volume
     def set_volume(self, volume):
-        pygame.mixer.music.set_volume(volume)
+        pygame.mixer.music.set_volume(volume * SETTINGS.VOL_MUSIC)
 
     # Volume check
     def volume_check(self, event):

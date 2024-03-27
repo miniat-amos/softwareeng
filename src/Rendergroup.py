@@ -22,7 +22,7 @@ class Rendergroup():
 	def render(self, surface:pygame.Surface, camera:Camera):
 		for layer in self.layers:
 			for item in layer:
-				surface.blit(item.surface, camera.apply(item.rect).topleft)
+				surface.blit(item.surface, camera.applyTL(item))
 
 	def clearAll(self):
 		for layer in self.layers:
