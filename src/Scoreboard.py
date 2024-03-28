@@ -29,6 +29,10 @@ SCORE_HEADER = "Score"
 USER_HEADER = "Username"
 DATE_HEADER = "Date"
 
+SCROLL_AMOUNT = 10
+
+def tobounds(n, mini, maxi): return max(mini, min(maxi, n))
+
 
 class Score():
 
@@ -108,7 +112,8 @@ class Scoreboard(Renderable):
 		self.col_padding = col_padding
 		self.row_padding = row_padding
 		self.index = 0
-		self.scroll_pos = (0,0)
+		self.scroll_pos = [0,0]
+		self.need_redraw_window = True
 		
 		self.setFont(font)
 
@@ -172,9 +177,9 @@ class Scoreboard(Renderable):
 		
 		content_rows = self.height // self.line_height + 2
 		con_height = content_rows * self.line_height
-		header_height = self.line_height + 2*self.row_padding
+		self.row_height = self.line_height + 2*self.row_padding
 		self.contents = Surface((con_width, con_height), pygame.SRCALPHA)
-		self.header = Surface((head_width, header_height), pygame.SRCALPHA)
+		self.header = Surface((head_width, self.row_height), pygame.SRCALPHA)
 		
 		# Define x positions of column contents and dividers
 		self.score_x = self.left_padding
@@ -183,9 +188,40 @@ class Scoreboard(Renderable):
 		self.div2_x = self.user_x + self.user_w + self.right_padding
 		self.date_x = self.div2_x + self.left_padding
 
+		self.contents_bottom_right = (self.contents.get_width(), self.contents.get_height() + self.row_height)
+
 		# print("<%d> %d <%d> %d <%d> |%d| lp=%d rp=%d" % (self.score_w, self.div1_x, self.user_w, self.div2_x, self.date_w, extra_col_space, self.left_padding, self.right_padding))
 		self.redraw()
 
+
+	def scroll(self, down:bool):
+		keys = pygame.key.get_pressed()
+		if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
+			axis = 0
+		else:
+			axis = 1
+		
+		if down:
+			self.scroll_pos[axis] += SCROLL_AMOUNT
+		else:
+			self.scroll_pos[axis] -= SCROLL_AMOUNT
+		
+		self.scroll_pos[axis] = tobounds(
+			self.scroll_pos[axis], 
+			0, 
+			self.contents_bottom_right[axis] - self.size[axis]
+		)
+		
+		self.need_redraw_window = True
+	
+	def scrollUp(self): self.scroll(False)
+	def scrollDown(self): self.scroll(True)
+
+
+	def update(self):
+		if self.need_redraw_window:
+			self.redrawWindow()
+			self.need_redraw_window = False
 
 	def drawBorders(surf:Surface, col:tuple[int,int,int,int] = (255,255,255,255)):
 		rect = surf.get_rect()
@@ -205,16 +241,19 @@ class Scoreboard(Renderable):
 	
 	def redraw(self):
 		self.surface = pygame.Surface(self.size, pygame.SRCALPHA)
-		self.surface.fill((0,0,0,255))
 		self.redrawHeader()
 		self.redrawContents()
-		row_height = self.header.get_height()
+		self.redrawWindow()
+
+	
+	def redrawWindow(self):
+		self.surface.fill((0,0,0,255))
 
 		head_area = Rect(
 			self.scroll_pos[0],
 			0,
 			self.width,
-			row_height
+			self.row_height
 		)
 		self.surface.blit(self.header, (0,0), head_area)
 
@@ -222,15 +261,12 @@ class Scoreboard(Renderable):
 			self.scroll_pos[0],
 			self.scroll_pos[1],
 			self.width,
-			self.height - row_height
+			self.height - self.row_height
 		)
-		self.surface.blit(self.contents, (0,row_height), cont_area)
+		self.surface.blit(self.contents, (0,self.row_height), cont_area)
 
 		Scoreboard.drawBorders(self.surface)
 
-	
-	def update(self):
-		pass
 
 
 	def redrawHeader(self):

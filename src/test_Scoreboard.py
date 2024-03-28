@@ -17,7 +17,7 @@ pygame.display.set_caption("Press keypad +/- to change font size")
 
 clock = pygame.time.Clock()
 
-fs = 18
+fs = 24
 font = pygame.font.Font(None, fs)
 sb = Scoreboard((500,500), (255,255,255), font)
 sb.span = ((50,50), (600,600))
@@ -28,15 +28,21 @@ while running:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			running = False
-		if event.type == pygame.KEYDOWN:
+		elif event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_KP_PLUS:
 				fs += 1
 				sb.setFont(pygame.font.Font(None, fs))
 			elif event.key == pygame.K_KP_MINUS:
 				fs -= 1
 				sb.setFont(pygame.font.Font(None, fs))
+		elif event.type == pygame.MOUSEBUTTONDOWN:
+			if event.button == 4:  # Scroll up
+				sb.scrollUp()
+			elif event.button == 5:  # Scroll down
+				sb.scrollDown()
 
 	screen.fill(FILLCOL)
+	sb.update()
 
 	screen.blit(sb.surface, sb.topleft)
 
