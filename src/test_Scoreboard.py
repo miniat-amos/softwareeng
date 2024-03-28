@@ -13,7 +13,7 @@ pygame.init()
 
 FILLCOL = (20,20,20)
 screen = pygame.display.set_mode((800, 800))
-pygame.display.set_caption("Press Up/Down to change font size")
+pygame.display.set_caption("Press keypad +/- to change font size")
 
 clock = pygame.time.Clock()
 
@@ -29,10 +29,10 @@ while running:
 		if event.type == pygame.QUIT:
 			running = False
 		if event.type == pygame.KEYDOWN:
-			if event.key == pygame.K_UP:
+			if event.key == pygame.K_KP_PLUS:
 				fs += 1
 				sb.setFont(pygame.font.Font(None, fs))
-			if event.key == pygame.K_DOWN:
+			elif event.key == pygame.K_KP_MINUS:
 				fs -= 1
 				sb.setFont(pygame.font.Font(None, fs))
 

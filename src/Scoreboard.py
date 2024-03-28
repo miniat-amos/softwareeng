@@ -136,19 +136,27 @@ class Scoreboard(Renderable):
 		self.line_height = char_size[1]
 		char_x = char_size[0]
 
-		self.score_w = max(char_x*SCORE_DIGIT_COUNT, char_x*len(SCORE_HEADER))
-		self.user_w = max(char_x*USR_CHAR_COUNT, char_x*len(USER_HEADER))
-		self.date_w = max(char_x*len(DT_FORMAT), char_x*len(DATE_HEADER))
+		self.score_w = max(
+			self.font.size('0'*SCORE_DIGIT_COUNT)[0], # char_x*SCORE_DIGIT_COUNT, 
+			self.font.size(SCORE_HEADER)[0] # char_x*len(SCORE_HEADER)
+		)
+		self.user_w = max(
+			self.font.size('_'*USR_CHAR_COUNT)[0], # char_x*USR_CHAR_COUNT, 
+			self.font.size(USER_HEADER)[0] # char_x*len(USER_HEADER)
+		)
+		self.date_w = max(
+			self.font.size(DT_FORMAT)[0], # char_x*len(DT_FORMAT), 
+			self.font.size(DATE_HEADER)[0] # char_x*len(DATE_HEADER)
+		)
 		
-		tot_content_width = self.score_w + self.user_w + self.date_w + 6 * self.col_padding
-		tot_col_space = self.width - tot_content_width
+		tot_content_width = self.score_w + self.user_w + self.date_w + 6*self.col_padding
+		extra_col_space = self.width - tot_content_width
 		
-		# If scores go off of scorebaord on right
-		if tot_col_space < 0:
+		# If scores go off of scoreboard on right
+		if extra_col_space < 0:
 			con_width = tot_content_width
 			head_width = tot_content_width
 
-			tot_col_space = 6 * self.col_padding
 			self.left_padding = self.col_padding
 			self.right_padding = self.col_padding
 		# If scores fit on scoreboard
@@ -157,7 +165,7 @@ class Scoreboard(Renderable):
 			head_width = self.width
 
 			self.left_padding = self.col_padding
-			self.right_padding = (tot_col_space - 3 * self.left_padding) // 3
+			self.right_padding = self.col_padding + extra_col_space // 3
 		
 		content_rows = self.height // self.line_height + 2
 		con_height = content_rows * self.line_height
@@ -171,6 +179,8 @@ class Scoreboard(Renderable):
 		self.user_x = self.div1_x + self.left_padding
 		self.div2_x = self.user_x + self.user_w + self.right_padding
 		self.date_x = self.div2_x + self.left_padding
+		
+		print("<%d> %d <%d> %d <%d> |%d| lp=%d rp=%d" % (self.score_w, self.div1_x, self.user_w, self.div2_x, self.date_w, extra_col_space, self.left_padding, self.right_padding))
 
 
 
@@ -249,7 +259,7 @@ class Scoreboard(Renderable):
 		# pygame.draw.line(surface, (127,127,127), (left, y), (right, y))
 
 		# Assign final surface
-		self.surface = self.contents
+		self.surface = self.header
 
 
 	### BEGIN STATIC COMPONENTS ###
