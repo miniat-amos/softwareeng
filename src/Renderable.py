@@ -89,6 +89,20 @@ class Renderable():
 		self.__rect.center = (round(self.__x), round(self.__y))
 
 	@property
+	def height(self): return self.__rect.height
+	@height.setter
+	def height(self, set:int):
+		self.__rect.height = set
+		self.__rect.center = (round(self.__x), round(self.__y))
+
+	@property
+	def width(self): return self.__rect.width
+	@width.setter
+	def width(self, set:int):
+		self.__rect.width = set
+		self.__rect.center = (round(self.__x), round(self.__y))
+
+	@property
 	def left(self): return self.__rect.left
 	@left.setter
 	def left(self, set:int):

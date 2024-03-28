@@ -4,6 +4,8 @@ import re
 from datetime import datetime
 from sortedcontainers import SortedList
 import pygame
+from pygame import Surface
+from pygame import Rect
 from Renderable import Renderable
 
 # .sb - Scoreboard file
@@ -22,6 +24,10 @@ DT_FORMAT = "%Y/%m/%d-%H:%M:%S"
 USR_CHAR_COUNT = 3
 SCORE_DIGIT_COUNT = 12
 NAME_FORM = re.compile("^[A-Z]{%d}$" % USR_CHAR_COUNT)
+
+SCORE_HEADER = "Score"
+USER_HEADER = "Username"
+DATE_HEADER = "Date"
 
 
 class Score():
@@ -73,9 +79,9 @@ class Score():
 		pass
 
 # Functions used is sorting lists of scores
-def sortScore(obj:Score): return (obj.score, obj.date, obj.username)
-def sortDate(obj:Score): return (obj.date, obj.score, obj.username)
-def sortUser(obj:Score): return (obj.username, obj.score, obj.date)
+def sortScore(obj:Score): return (-obj.score, obj.date, obj.username)
+def sortDate(obj:Score): return (obj.date, -obj.score, obj.username)
+def sortUser(obj:Score): return (obj.username, -obj.score, obj.date)
 
 
 # Scoreboard class
@@ -83,165 +89,167 @@ def sortUser(obj:Score): return (obj.username, obj.score, obj.date)
 #		- Score lists: scores_by_scores, scores_by_date, scores_by_user
 #		- loadScores(), inserScore(), exportScores(), __loadFile(), __archiveScores()
 #	Non-Static Elements:
-#		- 
+#		- Surface
+#			- Area of scoreboard display
+#			- Acts as a window, through which you can view part or all of the Contents and Header
+#		- Contents
+#			- An internal scoreboard that can exceed the size of the viewable area
+
 class Scoreboard(Renderable):
 
 	def __init__(self, size:tuple[int,int], color = (255,255,255), font = -1, row_padding = 8, col_padding = 12) -> None:
 		super().__init__()
 		if not Scoreboard.scores_loaded: Scoreboard.loadScores()
 
+		self.contents:Surface = 0
+		self.header:Surface = 0
+
 		self.color = color
 		self.col_padding = col_padding
 		self.row_padding = row_padding
-		
-		if font != -1:
-			self.font:pygame.font.Font = font
-		else:
-			self.font:pygame.font.Font = pygame.font.Font(None, 24)
-
 		self.index = 0
-		self.rect = pygame.Rect((0,0), size)
+		
+		self.setFont(font)
 
-	@property
-	def size(self): return (self.rect.width, self.rect.height)
-	@size.setter
-	def size(self, set:tuple[int,int]):
-		center = self.rect.center
-		self.rect.size = set
-		self.rect.center = center
-		self.redraw()
 
 	# Two opposing corners of the area of the rect
 	@property
-	def span(self): return (self.rect.topleft, self.rect.topright)
+	def span(self): return (self.topleft, self.topright)
 	@span.setter
 	def span(self, set:tuple[tuple[int,int], tuple[int,int]]):
 		top = min(set[0][1], set[1][1])
 		left = min(set[0][0], set[1][0])
 		width = abs(set[0][0] - set[1][0])
 		height = abs(set[0][1] - set[1][1])
-		self.rect = pygame.Rect(top, left, width, height)
+		self.set_rect(Rect(top, left, width, height))
 		self.redraw()
-	
-	def redraw(self):
+
+	def setFont(self, font):
+		if font != -1:
+			self.font:pygame.font.Font = font
+		else:
+			self.font:pygame.font.Font = pygame.font.Font(None, 24)
+		self.redraw()
+
+	def calcSizes(self):
 		char_size = self.font.size('_')
+		self.line_height = char_size[1]
 		char_x = char_size[0]
-		char_y = char_size[1]
 
-		score_header = "Score"
-		user_header = "Username"
-		date_header = "Date"
-
-		score_w = max(char_x*SCORE_DIGIT_COUNT, char_x*len(score_header))
-		user_w = max(char_x*USR_CHAR_COUNT, char_x*len("Username"))
-		date_w = max(char_x*len(DT_FORMAT), char_x*len(date_header))
-
-		tot_content_width = score_w + user_w + date_w + 6 * self.col_padding
-		tot_col_space = self.size[0] - tot_content_width
+		self.score_w = max(char_x*SCORE_DIGIT_COUNT, char_x*len(SCORE_HEADER))
+		self.user_w = max(char_x*USR_CHAR_COUNT, char_x*len(USER_HEADER))
+		self.date_w = max(char_x*len(DT_FORMAT), char_x*len(DATE_HEADER))
+		
+		tot_content_width = self.score_w + self.user_w + self.date_w + 6 * self.col_padding
+		tot_col_space = self.width - tot_content_width
+		
 		# If scores go off of scorebaord on right
 		if tot_col_space < 0:
+			con_width = tot_content_width
+			head_width = tot_content_width
+
 			tot_col_space = 6 * self.col_padding
-			left_padding = self.col_padding
-			right_padding = self.col_padding
+			self.left_padding = self.col_padding
+			self.right_padding = self.col_padding
 		# If scores fit on scoreboard
 		else:
-			left_padding = self.col_padding
-			right_padding = tot_col_space - 3 * left_padding
+			con_width = self.width
+			head_width = self.width
 
-
-		surface = pygame.Surface(self.size, pygame.SRCALPHA)
-
-		# Stuff
-		top = 0
-		bottom = self.rect.height-1
-		left = 0
-		right = self.rect.width-1
-
+			self.left_padding = self.col_padding
+			self.right_padding = (tot_col_space - 3 * self.left_padding) // 3
+		
+		content_rows = self.height // self.line_height + 2
+		con_height = content_rows * self.line_height
+		header_height = self.line_height + 2*self.row_padding
+		self.contents = Surface((con_width, con_height), pygame.SRCALPHA)
+		self.header = Surface((head_width, header_height), pygame.SRCALPHA)
+		
 		# Define x positions of column contents and dividers
-		div1_x = left
-		score_x = left_padding
-		div2_x = score_x + user_w + right_padding
-		user_x = div2_x + left_padding
-		div3_x = user_x + user_w + right_padding
-		date_x = div3_x + left_padding
-		div4_x = right
-
-		header_y = top + self.row_padding
+		self.score_x = self.left_padding
+		self.div1_x = self.score_x + self.score_w + self.right_padding
+		self.user_x = self.div1_x + self.left_padding
+		self.div2_x = self.user_x + self.user_w + self.right_padding
+		self.date_x = self.div2_x + self.left_padding
 
 
-		# Draw divider lines
-		pygame.draw.line(surface, (127,127,127), (div1_x, top), (div1_x, bottom))
-		pygame.draw.line(surface, (127,127,127), (div2_x, top), (div2_x, bottom))
-		pygame.draw.line(surface, (127,127,127), (div3_x, top), (div3_x, bottom))
-		pygame.draw.line(surface, (127,127,127), (div4_x, top), (div4_x, bottom))
-		pygame.draw.line(surface, (127,127,127), (left, top), (right, top))
-		pygame.draw.line(surface, (127,127,127), (left, bottom), (right, bottom))
+
+	def drawBorders(surf:Surface, col:tuple[int,int,int,int] = (255,255,255,255)):
+		rect = surf.get_rect()
+		right, bottom = rect.right-1, rect.bottom-1
+		left, top = rect.left, rect.top
+		pygame.draw.line(surf, col, (left, top), (right, top))
+		pygame.draw.line(surf, col, (left, bottom), (right, bottom))
+		pygame.draw.line(surf, col, (left, top), (left, bottom))
+		pygame.draw.line(surf, col, (right, top), (right, bottom))
+
+	def drawColDivides(surf:Surface, lines:list[int], col:tuple[int,int,int,int] = (255,255,255,255)):
+		rect = surf.get_rect()
+		top, bottom = rect.top, rect.bottom-1
+		for line_x in lines:
+			pygame.draw.line(surf, col, (line_x, top), (line_x, bottom))
+
+
+	def redraw(self):
+		self.calcSizes()
+		self.contents.fill((0,192,255,15))
+		self.header.fill((255,128,0,15))
+		self.surface.fill((0,0,0,255))
+
+		con_div_color = (0,192,255,255)
+		head_div_color = (255,128,0,255)
+
+		# Draw border lines
+		Scoreboard.drawBorders(self.contents, con_div_color)
+		Scoreboard.drawBorders(self.header, head_div_color)
+		Scoreboard.drawBorders(self.surface)
+		# Draw column divider lines
+		Scoreboard.drawColDivides(self.contents, [self.div1_x, self.div2_x], con_div_color)
+		Scoreboard.drawColDivides(self.header, [self.div1_x, self.div2_x], head_div_color)
 
 		# Draw header
-		surface.blit(self.font.render("Score", True, self.color), (score_x, header_y))
-		surface.blit(self.font.render("Username", True, self.color), (user_x, header_y))
-		surface.blit(self.font.render("Date", True, self.color), (date_x, header_y))
+		self.header.blit(self.font.render(SCORE_HEADER, True, self.color), (self.score_x, self.row_padding))
+		self.header.blit(self.font.render(USER_HEADER, True, self.color), (self.user_x, self.row_padding))
+		self.header.blit(self.font.render(DATE_HEADER, True, self.color), (self.date_x, self.row_padding))
+
+		con_rect = self.contents.get_rect()
+		bottom, right = con_rect.bottom-1, con_rect.right-1
+		left = con_rect.left
 
 		scores = Scoreboard.scores_by_score
-		y = header_y + char_y + self.row_padding
+		y = self.row_padding
 		i = 0
 		cnt = len(scores)
-		
+
 		while y < bottom and i < cnt:
-			pygame.draw.line(surface, (127,127,127), (left, y), (right, y))
-			
-			# Draw contents
+			self.contents.blit(self.font.render(scores[i].scoreStr(), True, self.color), (self.score_x, y))
+			self.contents.blit(self.font.render(scores[i].userStr(), True, self.color), (self.user_x, y))
+			self.contents.blit(self.font.render(scores[i].dateStr(), True, self.color), (self.date_x, y))
+			y += self.line_height + self.row_padding
+			pygame.draw.line(self.contents, con_div_color, (left, y), (right, y))
 			y += self.row_padding
-			surface.blit(self.font.render(scores[i].scoreStr(), True, self.color), (score_x, y))
-			surface.blit(self.font.render(scores[i].userStr(), True, self.color), (user_x, y))
-			surface.blit(self.font.render(scores[i].dateStr(), True, self.color), (date_x, y))
-			
-			y += self.row_padding + char_y
 			i += 1
-		pygame.draw.line(surface, (127,127,127), (left, y), (right, y))
+
+		# scores = Scoreboard.scores_by_score
+		# y = header_y + char_y + self.row_padding
+		# i = self.index
+		# cnt = len(scores)
+		
+		# while y < bottom and i < cnt:
+		# 	pygame.draw.line(surface, (127,127,127), (left, y), (right, y))
+			
+		# 	# Draw contents
+		# 	y += self.row_padding
+		# 	surface.blit(self.font.render(scores[i].scoreStr(), True, self.color), (score_x, y))
+		# 	surface.blit(self.font.render(scores[i].userStr(), True, self.color), (user_x, y))
+		# 	surface.blit(self.font.render(scores[i].dateStr(), True, self.color), (date_x, y))
+			
+		# 	y += self.row_padding + char_y
+		# 	i += 1
+		# pygame.draw.line(surface, (127,127,127), (left, y), (right, y))
 
 		# Assign final surface
-		self.surface = surface
-
-
-	
-	def redrawOld(self):
-		surface = pygame.Surface(self.rect.size, pygame.SRCALPHA)
-		pygame.draw.line(surface, self.color, (0, 0), (0, self.rect.height))
-		pygame.draw.line(surface, self.color, (self.rect.width-1, 0), (self.rect.width-1, self.rect.height))
-		h = 0
-
-		char_size = self.font.size('_')
-		char_x = char_size[0]
-		char_y = char_size[1]
-
-		score_header = "Score"
-		user_header = "Username"
-		date_header = "Date"
-
-		score_w = max(char_x*SCORE_DIGIT_COUNT, char_x*len(score_header))
-		user_w = max(char_x*USR_CHAR_COUNT, char_x*len("Username"))
-		date_w = max(char_x*len("YYYY/DD/MM"), char_x*len(date_header))
-
-		col_spacing = max(self.min_col_spacing, (self.rect.width - (score_w+user_w+date_w)) // 2)
-		half_spacing = col_spacing // 2
-
-		score_x = 0
-		user_x = score_x + score_w + col_spacing
-		su_border = user_x - half_spacing
-		date_x = user_x + user_w + col_spacing
-		ud_border = date_x - half_spacing
-
-		print(col_spacing * 2 + (score_w+user_w+date_w))
-		pygame.draw.line(surface, (127,127,127), (su_border, 0), (su_border, self.rect.height))
-		pygame.draw.line(surface, (127,127,127), (ud_border, 0), (ud_border, self.rect.height))
-
-		# Draw header
-		surface.blit(self.font.render("Score", True, self.color), (score_x, 0))
-		surface.blit(self.font.render("Username", True, self.color), (user_x, 0))
-		surface.blit(self.font.render("Date", True, self.color), (date_x, 0))
-
-		self.surface = surface
+		self.surface = self.contents
 
 
 	### BEGIN STATIC COMPONENTS ###

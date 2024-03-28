@@ -12,11 +12,13 @@ import pygame
 pygame.init()
 
 FILLCOL = (20,20,20)
-screen = pygame.display.set_mode((800, 720))
+screen = pygame.display.set_mode((800, 800))
+pygame.display.set_caption("Press Up/Down to change font size")
 
 clock = pygame.time.Clock()
 
-font = pygame.font.Font(None, 32)
+fs = 18
+font = pygame.font.Font(None, fs)
 sb = Scoreboard((20,500), (255,255,255), font)
 sb.span = ((100,100), (600,600))
 
@@ -26,9 +28,19 @@ while running:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			running = False
+		if event.type == pygame.KEYDOWN:
+			if event.key == pygame.K_UP:
+				fs += 1
+				sb.setFont(pygame.font.Font(None, fs))
+			if event.key == pygame.K_DOWN:
+				fs -= 1
+				sb.setFont(pygame.font.Font(None, fs))
+
 	screen.fill(FILLCOL)
 
-	screen.blit(sb.surface, sb.rect.topleft)
+	screen.blit(sb.surface, sb.topleft)
 
 	pygame.display.flip()
 	clock.tick(60)
+
+Scoreboard.export()
