@@ -108,6 +108,7 @@ class Scoreboard(Renderable):
 		self.col_padding = col_padding
 		self.row_padding = row_padding
 		self.index = 0
+		self.scroll_pos = (0,0)
 		
 		self.setFont(font)
 
@@ -122,16 +123,18 @@ class Scoreboard(Renderable):
 		width = abs(set[0][0] - set[1][0])
 		height = abs(set[0][1] - set[1][1])
 		self.set_rect(Rect(top, left, width, height))
-		self.redraw()
+		self.calcDimensions()
+
 
 	def setFont(self, font):
 		if font != -1:
 			self.font:pygame.font.Font = font
 		else:
 			self.font:pygame.font.Font = pygame.font.Font(None, 24)
-		self.redraw()
+		self.calcDimensions()
 
-	def calcSizes(self):
+
+	def calcDimensions(self):
 		char_size = self.font.size('_')
 		self.line_height = char_size[1]
 		char_x = char_size[0]
@@ -179,9 +182,9 @@ class Scoreboard(Renderable):
 		self.user_x = self.div1_x + self.left_padding
 		self.div2_x = self.user_x + self.user_w + self.right_padding
 		self.date_x = self.div2_x + self.left_padding
-		
-		print("<%d> %d <%d> %d <%d> |%d| lp=%d rp=%d" % (self.score_w, self.div1_x, self.user_w, self.div2_x, self.date_w, extra_col_space, self.left_padding, self.right_padding))
 
+		# print("<%d> %d <%d> %d <%d> |%d| lp=%d rp=%d" % (self.score_w, self.div1_x, self.user_w, self.div2_x, self.date_w, extra_col_space, self.left_padding, self.right_padding))
+		self.redraw()
 
 
 	def drawBorders(surf:Surface, col:tuple[int,int,int,int] = (255,255,255,255)):
@@ -199,29 +202,61 @@ class Scoreboard(Renderable):
 		for line_x in lines:
 			pygame.draw.line(surf, col, (line_x, top), (line_x, bottom))
 
-
+	
 	def redraw(self):
-		self.calcSizes()
-		self.contents.fill((0,192,255,15))
-		self.header.fill((255,128,0,15))
+		self.surface = pygame.Surface(self.size, pygame.SRCALPHA)
 		self.surface.fill((0,0,0,255))
+		self.redrawHeader()
+		self.redrawContents()
+		row_height = self.header.get_height()
 
-		con_div_color = (0,192,255,255)
+		head_area = Rect(
+			self.scroll_pos[0],
+			0,
+			self.width,
+			row_height
+		)
+		self.surface.blit(self.header, (0,0), head_area)
+
+		cont_area = Rect(
+			self.scroll_pos[0],
+			self.scroll_pos[1],
+			self.width,
+			self.height - row_height
+		)
+		self.surface.blit(self.contents, (0,row_height), cont_area)
+
+		Scoreboard.drawBorders(self.surface)
+
+	
+	def update(self):
+		pass
+
+
+	def redrawHeader(self):
+		self.header.fill((255,128,0,15))
+
 		head_div_color = (255,128,0,255)
 
 		# Draw border lines
-		Scoreboard.drawBorders(self.contents, con_div_color)
 		Scoreboard.drawBorders(self.header, head_div_color)
-		Scoreboard.drawBorders(self.surface)
 		# Draw column divider lines
-		Scoreboard.drawColDivides(self.contents, [self.div1_x, self.div2_x], con_div_color)
 		Scoreboard.drawColDivides(self.header, [self.div1_x, self.div2_x], head_div_color)
 
 		# Draw header
 		self.header.blit(self.font.render(SCORE_HEADER, True, self.color), (self.score_x, self.row_padding))
 		self.header.blit(self.font.render(USER_HEADER, True, self.color), (self.user_x, self.row_padding))
 		self.header.blit(self.font.render(DATE_HEADER, True, self.color), (self.date_x, self.row_padding))
+	
 
+	def redrawContents(self):
+		# Clear
+		self.contents.fill((0,192,255,15))
+		# Draw borders and dividers
+		con_div_color = (0,192,255,255)
+		Scoreboard.drawBorders(self.contents, con_div_color)
+		Scoreboard.drawColDivides(self.contents, [self.div1_x, self.div2_x], con_div_color)
+		
 		con_rect = self.contents.get_rect()
 		bottom, right = con_rect.bottom-1, con_rect.right-1
 		left = con_rect.left
@@ -240,26 +275,6 @@ class Scoreboard(Renderable):
 			y += self.row_padding
 			i += 1
 
-		# scores = Scoreboard.scores_by_score
-		# y = header_y + char_y + self.row_padding
-		# i = self.index
-		# cnt = len(scores)
-		
-		# while y < bottom and i < cnt:
-		# 	pygame.draw.line(surface, (127,127,127), (left, y), (right, y))
-			
-		# 	# Draw contents
-		# 	y += self.row_padding
-		# 	surface.blit(self.font.render(scores[i].scoreStr(), True, self.color), (score_x, y))
-		# 	surface.blit(self.font.render(scores[i].userStr(), True, self.color), (user_x, y))
-		# 	surface.blit(self.font.render(scores[i].dateStr(), True, self.color), (date_x, y))
-			
-		# 	y += self.row_padding + char_y
-		# 	i += 1
-		# pygame.draw.line(surface, (127,127,127), (left, y), (right, y))
-
-		# Assign final surface
-		self.surface = self.header
 
 
 	### BEGIN STATIC COMPONENTS ###
