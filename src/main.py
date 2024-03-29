@@ -340,7 +340,7 @@ def game_over():
     textsurface_directions.set_alpha(gameover_alpha)
 
     # Setting rectangles
-    gameover_font_rect = textsurface_gameover.get_rect(center=(screen_width/2, screen_height/4))
+    gameover_font_rect = textsurface_gameover.get_rect(center=(screen_width/2, screen_height/2.5))
     directions_font_rect = textsurface_gameover.get_rect(center=(screen_width/2, screen_height/1.5))
 
     # Play the game over music
@@ -372,7 +372,7 @@ def game_over():
         # Drawing the text
         screen.blit(textsurface_gameover, gameover_font_rect)
         screen.blit(textsurface_directions, directions_font_rect)
-        
+
         # Refresh the display
         pygame.display.flip()
 
