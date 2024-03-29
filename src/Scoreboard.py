@@ -29,7 +29,7 @@ SCORE_HEADER = "Score"
 USER_HEADER = "Username"
 DATE_HEADER = "Date"
 
-SCROLL_AMOUNT = 10
+SCROLL_AMOUNT = 12
 
 def tobounds(n, mini, maxi): return max(mini, min(maxi, n))
 
@@ -113,9 +113,64 @@ class Scoreboard(Renderable):
 		self.row_padding = row_padding
 		self.index = 0
 		self.scroll_pos = [0,0]
+
 		self.need_redraw_window = True
+		self.old_scroll = [-1,-1]
+		self.old_index = -1
 		
 		self.setFont(font)
+	
+	
+	def update(self):
+		# Prevent from scrolling below scoreboard
+		dist_from_bottom = (Scoreboard.getCnt() - self.index + 1) * self.row_height - self.height - self.scroll_pos[1]
+		if dist_from_bottom < 0:
+				self.scroll_pos[1] += dist_from_bottom
+		
+		# If scrolled below existing contents pane
+		if self.contents.get_height() - self.scroll_pos[1] - self.height < 0:
+			d_index = self.scroll_pos[1] // self.row_height
+			self.index += d_index
+	
+			if self.index > Scoreboard.getCnt():
+				self.index = Scoreboard.getCnt() - 1
+				self.scroll_pos[1] = 0
+			else:
+				self.scroll_pos[1] -= d_index * self.row_height
+		
+		# If scrolling above existing contents pane
+		elif self.scroll_pos[1] < 0:
+			if self.index <= 0:
+				self.scroll_pos[1] = 0
+				self.index = 0
+			else:
+				legnth_off_bottom = self.contents.get_height() - self.scroll_pos[1] - self.height
+				d_index = -legnth_off_bottom // self.row_height
+				self.index += d_index
+
+				if self.index < 0:
+					self.index = 0
+					self.scroll_pos[1] = 0
+				else:
+					self.scroll_pos[1] -= d_index * self.row_height
+
+		# Bound x-scroll to the x-bounds of the contents pane
+		self.scroll_pos[0] = tobounds(self.scroll_pos[0], 0, self.contents.get_width() - self.width)
+		
+		# If scroll has changed, redraw window
+		if self.scroll_pos[0] != self.old_scroll[0] \
+			or self.scroll_pos[1] != self.old_scroll[1] \
+			or self.index == self.old_index:
+			
+			self.redrawContents()
+			self.need_redraw_window = True
+
+		if self.need_redraw_window:
+			self.redrawWindow()
+		
+		self.need_redraw_window = False
+		self.old_scroll = self.scroll_pos.copy()
+		self.old_index = self.index
 
 
 	# Two opposing corners of the area of the rect
@@ -144,6 +199,8 @@ class Scoreboard(Renderable):
 		self.line_height = char_size[1]
 		char_x = char_size[0]
 
+		u_height, u_width = self.height-2, self.width-2
+
 		self.score_w = max(
 			self.font.size('0'*SCORE_DIGIT_COUNT)[0], # char_x*SCORE_DIGIT_COUNT, 
 			self.font.size(SCORE_HEADER)[0] # char_x*len(SCORE_HEADER)
@@ -158,7 +215,7 @@ class Scoreboard(Renderable):
 		)
 		
 		tot_content_width = self.score_w + self.user_w + self.date_w + 6*self.col_padding
-		extra_col_space = self.width - tot_content_width
+		extra_col_space = u_width - tot_content_width
 		
 		# If scores go off of scoreboard on right
 		if extra_col_space < 0:
@@ -169,13 +226,13 @@ class Scoreboard(Renderable):
 			self.right_padding = self.col_padding
 		# If scores fit on scoreboard
 		else:
-			con_width = self.width
-			head_width = self.width
+			con_width = u_width
+			head_width = u_width
 
 			self.left_padding = self.col_padding
 			self.right_padding = self.col_padding + extra_col_space // 3
 		
-		content_rows = self.height // self.line_height + 2
+		content_rows = u_height // self.line_height + 5
 		con_height = content_rows * self.line_height
 		self.row_height = self.line_height + 2*self.row_padding
 		self.contents = Surface((con_width, con_height), pygame.SRCALPHA)
@@ -193,7 +250,7 @@ class Scoreboard(Renderable):
 		# print("<%d> %d <%d> %d <%d> |%d| lp=%d rp=%d" % (self.score_w, self.div1_x, self.user_w, self.div2_x, self.date_w, extra_col_space, self.left_padding, self.right_padding))
 		self.redraw()
 
-
+	# Scrolls the contents pane. Validation of scroll is checked in update()
 	def scroll(self, down:bool):
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
@@ -205,23 +262,11 @@ class Scoreboard(Renderable):
 			self.scroll_pos[axis] += SCROLL_AMOUNT
 		else:
 			self.scroll_pos[axis] -= SCROLL_AMOUNT
-		
-		self.scroll_pos[axis] = tobounds(
-			self.scroll_pos[axis], 
-			0, 
-			self.contents_bottom_right[axis] - self.size[axis]
-		)
-		
-		self.need_redraw_window = True
-	
+
+
 	def scrollUp(self): self.scroll(False)
 	def scrollDown(self): self.scroll(True)
 
-
-	def update(self):
-		if self.need_redraw_window:
-			self.redrawWindow()
-			self.need_redraw_window = False
 
 	def drawBorders(surf:Surface, col:tuple[int,int,int,int] = (255,255,255,255)):
 		rect = surf.get_rect()
@@ -255,7 +300,7 @@ class Scoreboard(Renderable):
 			self.width,
 			self.row_height
 		)
-		self.surface.blit(self.header, (0,0), head_area)
+		self.surface.blit(self.header, (1,1), head_area)
 
 		cont_area = Rect(
 			self.scroll_pos[0],
@@ -263,7 +308,7 @@ class Scoreboard(Renderable):
 			self.width,
 			self.height - self.row_height
 		)
-		self.surface.blit(self.contents, (0,self.row_height), cont_area)
+		self.surface.blit(self.contents, (1,self.row_height+1), cont_area)
 
 		Scoreboard.drawBorders(self.surface)
 
@@ -299,7 +344,7 @@ class Scoreboard(Renderable):
 
 		scores = Scoreboard.scores_by_score
 		y = self.row_padding
-		i = 0
+		i = self.index
 		cnt = len(scores)
 
 		while y < bottom and i < cnt:
@@ -396,6 +441,9 @@ class Scoreboard(Renderable):
 		
 		# Delete temporary backup file
 		if os.path.exists(archive_file): os.remove(archive_file)
+
+	
+	def getCnt(): return len(Scoreboard.scores_by_score)
 
 
 	def toStr() -> str:
