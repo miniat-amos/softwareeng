@@ -40,6 +40,8 @@ while running:
 				sb.scrollUp()
 			elif event.button == 5:  # Scroll down
 				sb.scrollDown()
+			elif event.button == 1:
+				sb.checkClick(event.pos)
 
 	screen.fill(FILLCOL)
 	sb.update()

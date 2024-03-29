@@ -115,8 +115,12 @@ class Scoreboard(Renderable):
 		self.scroll_pos = [0,0]
 
 		self.need_redraw_window = True
+		self.need_update_contents = True
 		self.old_scroll = [-1,-1]
 		self.old_index = -1
+
+		self.active_score_list = Scoreboard.scores_by_score
+		self.reverse_order = False
 		
 		self.setFont(font)
 	
@@ -137,6 +141,7 @@ class Scoreboard(Renderable):
 				self.scroll_pos[1] = 0
 			else:
 				self.scroll_pos[1] -= d_index * self.row_height
+			print(d_index)
 		
 		# If scrolling above existing contents pane
 		elif self.scroll_pos[1] < 0:
@@ -155,14 +160,19 @@ class Scoreboard(Renderable):
 					self.scroll_pos[1] -= d_index * self.row_height
 
 		# Bound x-scroll to the x-bounds of the contents pane
-		self.scroll_pos[0] = tobounds(self.scroll_pos[0], 0, self.contents.get_width() - self.width)
+		self.scroll_pos[0] = tobounds(self.scroll_pos[0], 0, self.contents.get_width() - self.width + 2)
 		
 		# If scroll has changed, redraw window
 		if self.scroll_pos[0] != self.old_scroll[0] \
 			or self.scroll_pos[1] != self.old_scroll[1] \
 			or self.index == self.old_index:
 			
+			self.need_update_contents = True
+			self.need_redraw_window = True
+		
+		if self.need_update_contents:
 			self.redrawContents()
+			self.need_update_contents = False
 			self.need_redraw_window = True
 
 		if self.need_redraw_window:
@@ -171,6 +181,55 @@ class Scoreboard(Renderable):
 		self.need_redraw_window = False
 		self.old_scroll = self.scroll_pos.copy()
 		self.old_index = self.index
+
+
+	def checkClick(self, global_pos:tuple[int,int]):
+		if not self.get_rect().collidepoint(global_pos): return
+		
+		x = global_pos[0] - self.left
+		y = global_pos[1] - self.top
+
+		print("Clicked (%d, %d)" % (x, y))
+		
+		# Check if header has been clicked
+		if (1 < y <= self.row_height) and (1 <= x <= self.width-1):
+			self.need_redraw_window = True
+			self.index = 0
+			self.scroll_pos = [0,0]
+
+			# Change sort order
+			if x < self.div1_x: # Clicked on score
+				if self.active_score_list == Scoreboard.scores_by_score:
+					self.reverse_order = not self.reverse_order
+				else:
+					self.active_score_list = Scoreboard.scores_by_score
+			elif x < self.div2_x: # Clicked on username
+				if self.active_score_list == Scoreboard.scores_by_user:
+					self.reverse_order = not self.reverse_order
+				else:
+					self.active_score_list = Scoreboard.scores_by_user
+			else:
+				if self.active_score_list == Scoreboard.scores_by_date:
+					self.reverse_order = not self.reverse_order
+				else:
+					self.active_score_list = Scoreboard.scores_by_date
+
+
+	# Scrolls the contents pane. Validation of scroll is checked in update()
+	def scroll(self, down:bool):
+		keys = pygame.key.get_pressed()
+		if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
+			axis = 0
+		else:
+			axis = 1
+		
+		if down:
+			self.scroll_pos[axis] += SCROLL_AMOUNT
+		else:
+			self.scroll_pos[axis] -= SCROLL_AMOUNT
+
+	def scrollUp(self): self.scroll(False)
+	def scrollDown(self): self.scroll(True)
 
 
 	# Two opposing corners of the area of the rect
@@ -250,23 +309,6 @@ class Scoreboard(Renderable):
 		# print("<%d> %d <%d> %d <%d> |%d| lp=%d rp=%d" % (self.score_w, self.div1_x, self.user_w, self.div2_x, self.date_w, extra_col_space, self.left_padding, self.right_padding))
 		self.redraw()
 
-	# Scrolls the contents pane. Validation of scroll is checked in update()
-	def scroll(self, down:bool):
-		keys = pygame.key.get_pressed()
-		if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
-			axis = 0
-		else:
-			axis = 1
-		
-		if down:
-			self.scroll_pos[axis] += SCROLL_AMOUNT
-		else:
-			self.scroll_pos[axis] -= SCROLL_AMOUNT
-
-
-	def scrollUp(self): self.scroll(False)
-	def scrollDown(self): self.scroll(True)
-
 
 	def drawBorders(surf:Surface, col:tuple[int,int,int,int] = (255,255,255,255)):
 		rect = surf.get_rect()
@@ -313,7 +355,6 @@ class Scoreboard(Renderable):
 		Scoreboard.drawBorders(self.surface)
 
 
-
 	def redrawHeader(self):
 		self.header.fill((255,128,0,15))
 
@@ -342,19 +383,23 @@ class Scoreboard(Renderable):
 		bottom, right = con_rect.bottom-1, con_rect.right-1
 		left = con_rect.left
 
-		scores = Scoreboard.scores_by_score
 		y = self.row_padding
-		i = self.index
-		cnt = len(scores)
+		cnt = Scoreboard.getCnt()
+		if self.reverse_order:
+			i = Scoreboard.getCnt() - 1 - self.index
+			i_inc = -1
+		else:
+			i = self.index
+			i_inc = 1
 
-		while y < bottom and i < cnt:
-			self.contents.blit(self.font.render(scores[i].scoreStr(), True, self.color), (self.score_x, y))
-			self.contents.blit(self.font.render(scores[i].userStr(), True, self.color), (self.user_x, y))
-			self.contents.blit(self.font.render(scores[i].dateStr(), True, self.color), (self.date_x, y))
+		while y < bottom and 0 <= i < cnt:
+			self.contents.blit(self.font.render(self.active_score_list[i].scoreStr(), True, self.color), (self.score_x, y))
+			self.contents.blit(self.font.render(self.active_score_list[i].userStr(), True, self.color), (self.user_x, y))
+			self.contents.blit(self.font.render(self.active_score_list[i].dateStr(), True, self.color), (self.date_x, y))
 			y += self.line_height + self.row_padding
 			pygame.draw.line(self.contents, con_div_color, (left, y), (right, y))
 			y += self.row_padding
-			i += 1
+			i += i_inc
 
 
 
