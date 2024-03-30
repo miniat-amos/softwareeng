@@ -1,4 +1,5 @@
 import os
+import SETTINGS
 import string
 import re
 from datetime import datetime
@@ -101,14 +102,13 @@ def sortUser(obj:Score): return (obj.username, -obj.score, obj.date)
 
 class Scoreboard(Renderable):
 
-	def __init__(self, size:tuple[int,int], color = (255,255,255), font = -1, row_padding = 8, col_padding = 12) -> None:
+	def __init__(self, size:tuple[int,int], font = -1, row_padding = 8, col_padding = 12) -> None:
 		super().__init__()
 		if not Scoreboard.scores_loaded: Scoreboard.loadScores()
 
 		self.contents:Surface = 0
 		self.header:Surface = 0
-
-		self.color = color
+		
 		self.col_padding = col_padding
 		self.row_padding = row_padding
 		self.index = 0
@@ -122,12 +122,13 @@ class Scoreboard(Renderable):
 		self.active_score_list = Scoreboard.scores_by_score
 		self.reverse_order = False
 		
+		self.size = size
 		self.setFont(font)
 	
 	
 	def update(self):
 		# Prevent from scrolling below scoreboard
-		dist_from_bottom = (Scoreboard.getCnt() - self.index + 1) * self.row_height - self.height - self.scroll_pos[1]
+		dist_from_bottom = (Scoreboard.getCnt() - self.index + 1) * self.row_height - (self.u_height-1) - self.scroll_pos[1]
 		if dist_from_bottom < 0:
 				self.scroll_pos[1] += dist_from_bottom
 		
@@ -141,7 +142,6 @@ class Scoreboard(Renderable):
 				self.scroll_pos[1] = 0
 			else:
 				self.scroll_pos[1] -= d_index * self.row_height
-			print(d_index)
 		
 		# If scrolling above existing contents pane
 		elif self.scroll_pos[1] < 0:
@@ -172,13 +172,14 @@ class Scoreboard(Renderable):
 		
 		if self.need_update_contents:
 			self.redrawContents()
-			self.need_update_contents = False
 			self.need_redraw_window = True
 
 		if self.need_redraw_window:
 			self.redrawWindow()
 		
+		# Reset update check conditions
 		self.need_redraw_window = False
+		self.need_update_contents = False
 		self.old_scroll = self.scroll_pos.copy()
 		self.old_index = self.index
 
@@ -186,10 +187,9 @@ class Scoreboard(Renderable):
 	def checkClick(self, global_pos:tuple[int,int]):
 		if not self.get_rect().collidepoint(global_pos): return
 		
+		# Get position of click relative to the scoreboard
 		x = global_pos[0] - self.left
 		y = global_pos[1] - self.top
-
-		print("Clicked (%d, %d)" % (x, y))
 		
 		# Check if header has been clicked
 		if (1 < y <= self.row_height) and (1 <= x <= self.width-1):
@@ -253,12 +253,13 @@ class Scoreboard(Renderable):
 		self.calcDimensions()
 
 
+	# Recalculates various aspects such as R/L padding, row height, width of each column, etc.
 	def calcDimensions(self):
 		char_size = self.font.size('_')
 		self.line_height = char_size[1]
-		char_x = char_size[0]
 
-		u_height, u_width = self.height-2, self.width-2
+		self.u_height = self.height-2
+		self.u_width = self.width-2
 
 		self.score_w = max(
 			self.font.size('0'*SCORE_DIGIT_COUNT)[0], # char_x*SCORE_DIGIT_COUNT, 
@@ -274,7 +275,7 @@ class Scoreboard(Renderable):
 		)
 		
 		tot_content_width = self.score_w + self.user_w + self.date_w + 6*self.col_padding
-		extra_col_space = u_width - tot_content_width
+		extra_col_space = self.u_width - tot_content_width
 		
 		# If scores go off of scoreboard on right
 		if extra_col_space < 0:
@@ -285,15 +286,17 @@ class Scoreboard(Renderable):
 			self.right_padding = self.col_padding
 		# If scores fit on scoreboard
 		else:
-			con_width = u_width
-			head_width = u_width
+			con_width = self.u_width
+			head_width = self.u_width
 
 			self.left_padding = self.col_padding
 			self.right_padding = self.col_padding + extra_col_space // 3
 		
-		content_rows = u_height // self.line_height + 5
+		# Get sizes of contents and header
+		content_rows = self.u_height // self.line_height + 5
 		con_height = content_rows * self.line_height
 		self.row_height = self.line_height + 2*self.row_padding
+		# Define surfaces for contents and header
 		self.contents = Surface((con_width, con_height), pygame.SRCALPHA)
 		self.header = Surface((head_width, self.row_height), pygame.SRCALPHA)
 		
@@ -303,10 +306,7 @@ class Scoreboard(Renderable):
 		self.user_x = self.div1_x + self.left_padding
 		self.div2_x = self.user_x + self.user_w + self.right_padding
 		self.date_x = self.div2_x + self.left_padding
-
-		self.contents_bottom_right = (self.contents.get_width(), self.contents.get_height() + self.row_height)
-
-		# print("<%d> %d <%d> %d <%d> |%d| lp=%d rp=%d" % (self.score_w, self.div1_x, self.user_w, self.div2_x, self.date_w, extra_col_space, self.left_padding, self.right_padding))
+		
 		self.redraw()
 
 
@@ -325,16 +325,16 @@ class Scoreboard(Renderable):
 		for line_x in lines:
 			pygame.draw.line(surf, col, (line_x, top), (line_x, bottom))
 
-	
+	# Redraws everything from scratch
 	def redraw(self):
 		self.surface = pygame.Surface(self.size, pygame.SRCALPHA)
 		self.redrawHeader()
 		self.redrawContents()
 		self.redrawWindow()
 
-	
+	# Redraws the the visible portion of contents and header
 	def redrawWindow(self):
-		self.surface.fill((0,0,0,255))
+		self.surface.fill(SETTINGS.SB_BACKGROUND_COLOR)
 
 		head_area = Rect(
 			self.scroll_pos[0],
@@ -354,50 +354,49 @@ class Scoreboard(Renderable):
 
 		Scoreboard.drawBorders(self.surface)
 
-
+	# Redraws the entire header
 	def redrawHeader(self):
-		self.header.fill((255,128,0,15))
-
-		head_div_color = (255,128,0,255)
+		self.header.fill(SETTINGS.HD_BACKGROUND_COLOR)
 
 		# Draw border lines
-		Scoreboard.drawBorders(self.header, head_div_color)
+		Scoreboard.drawBorders(self.header, SETTINGS.HD_BORDER_COLOR)
 		# Draw column divider lines
-		Scoreboard.drawColDivides(self.header, [self.div1_x, self.div2_x], head_div_color)
+		Scoreboard.drawColDivides(self.header, [self.div1_x, self.div2_x], SETTINGS.HD_BORDER_COLOR)
 
 		# Draw header
-		self.header.blit(self.font.render(SCORE_HEADER, True, self.color), (self.score_x, self.row_padding))
-		self.header.blit(self.font.render(USER_HEADER, True, self.color), (self.user_x, self.row_padding))
-		self.header.blit(self.font.render(DATE_HEADER, True, self.color), (self.date_x, self.row_padding))
+		self.header.blit(self.font.render(SCORE_HEADER, True, SETTINGS.HD_TEXT_COLOR), (self.score_x, self.row_padding))
+		self.header.blit(self.font.render(USER_HEADER, True, SETTINGS.HD_TEXT_COLOR), (self.user_x, self.row_padding))
+		self.header.blit(self.font.render(DATE_HEADER, True, SETTINGS.HD_TEXT_COLOR), (self.date_x, self.row_padding))
 	
-
+	# Redraws the entire contents panel (contains only relevant scores)
 	def redrawContents(self):
 		# Clear
-		self.contents.fill((0,192,255,15))
+		self.contents.fill(SETTINGS.CT_BACKGROUND_COLOR)
 		# Draw borders and dividers
-		con_div_color = (0,192,255,255)
-		Scoreboard.drawBorders(self.contents, con_div_color)
-		Scoreboard.drawColDivides(self.contents, [self.div1_x, self.div2_x], con_div_color)
-		
-		con_rect = self.contents.get_rect()
-		bottom, right = con_rect.bottom-1, con_rect.right-1
-		left = con_rect.left
+		Scoreboard.drawBorders(self.contents, SETTINGS.CT_BORDER_COLOR)
+		Scoreboard.drawColDivides(self.contents, [self.div1_x, self.div2_x], SETTINGS.CT_BORDER_COLOR)
 
+		# Adjust rect values for positioning lines and such
+		con_rect = self.contents.get_rect()
+		bottom, right, left = con_rect.bottom-1, con_rect.right-1, con_rect.left
+
+		# Initialize loop condition variables
 		y = self.row_padding
 		cnt = Scoreboard.getCnt()
 		if self.reverse_order:
-			i = Scoreboard.getCnt() - 1 - self.index
+			i = cnt-1 - self.index
 			i_inc = -1
 		else:
 			i = self.index
 			i_inc = 1
 
+		# Draw each row
 		while y < bottom and 0 <= i < cnt:
-			self.contents.blit(self.font.render(self.active_score_list[i].scoreStr(), True, self.color), (self.score_x, y))
-			self.contents.blit(self.font.render(self.active_score_list[i].userStr(), True, self.color), (self.user_x, y))
-			self.contents.blit(self.font.render(self.active_score_list[i].dateStr(), True, self.color), (self.date_x, y))
+			self.contents.blit(self.font.render(self.active_score_list[i].scoreStr(), True, SETTINGS.CT_TEXT_COLOR), (self.score_x, y))
+			self.contents.blit(self.font.render(self.active_score_list[i].userStr(), True, SETTINGS.CT_TEXT_COLOR), (self.user_x, y))
+			self.contents.blit(self.font.render(self.active_score_list[i].dateStr(), True, SETTINGS.CT_TEXT_COLOR), (self.date_x, y))
 			y += self.line_height + self.row_padding
-			pygame.draw.line(self.contents, con_div_color, (left, y), (right, y))
+			pygame.draw.line(self.contents, SETTINGS.CT_BORDER_COLOR, (left, y), (right, y))
 			y += self.row_padding
 			i += i_inc
 
