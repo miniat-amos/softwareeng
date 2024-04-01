@@ -6,6 +6,7 @@ import Collision
 import Building
 import Map
 import Player
+import StaticMusicManager
 
 MAP = None
 
@@ -49,6 +50,7 @@ class Lightning(Entity.Entity):
                 player.lower_health(20)
         
         self.surface = pygame.image.load(self.folder + "bolt.png")
+        StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/lightning/static_zap.wav")
         self.size = (124,128)
         self.bottom = self.y
         # print("Base from Player: (%d, %d)" % (self.x-player.x, self.bottom-player.y))
