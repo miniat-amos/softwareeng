@@ -61,10 +61,8 @@ testsound = 'assets/sounds/testsound.mp3'
 menu_button_font = pygame.font.Font(None, 48)
 img_button_hover = pygame.image.load("assets/sprites/menu/Button_Hover.png")
 img_button = pygame.image.load("assets/sprites/menu/Button.png")
-# Scaling button assets
-button_scale = .33
-img_button_hover = pygame.transform.scale(img_button_hover, (int(img_button_hover.get_width() * button_scale), int(img_button_hover.get_height() * button_scale)))
-img_button = pygame.transform.scale(img_button, (int(img_button.get_width() * button_scale), int(img_button.get_height() * button_scale)))
+img_button_hover_small = pygame.image.load("assets/sprites/menu/Button_Hover_Small.png")
+img_button_small = pygame.image.load("assets/sprites/menu/Button_Small.png")
 
 # Logo
 logo_scale = .50
@@ -76,18 +74,32 @@ textsurface_logo = logo_font.render("Lightning Bolt Town", True, (255, 255, 255)
 
 
 # Buttons
-play_button = Button(275, 300, img_button, "Play", menu_button_font)
-options_button = Button(50, 475, img_button, "Options", menu_button_font)
-quit_button = Button(505, 475, img_button, "Quit", menu_button_font)
-back_button = Button(280, 400, img_button, "Back", menu_button_font)
-scoreboard_button = Button(280, 600, img_button, "Scoreboard", menu_button_font)
+play_button = Button(275, 300, img_button, img_button_hover, "Play", menu_button_font)
+options_button = Button(50, 475, img_button, img_button_hover, "Options", menu_button_font)
+quit_button = Button(505, 475, img_button, img_button_hover, "Quit", menu_button_font)
+back_button = Button(280, 500, img_button, img_button_hover, "Back", menu_button_font)
+scoreboard_button = Button(280, 600, img_button, img_button_hover, "Scoreboard", menu_button_font)
+
+# Options menu buttons
+volbutton_x1 = 250
+volbutton_x2 = 450
+volubtton_y = 100
+volbutton_y_change = 150
+mastervol_increase = Button(volbutton_x2, volubtton_y, img_button_small, img_button_hover_small, "+", menu_button_font)
+mastervol_decrease = Button(volbutton_x1, volubtton_y, img_button_small, img_button_hover_small, "+", menu_button_font)
+musicvol_increase = Button(volbutton_x2, volubtton_y + volbutton_y_change * 1, img_button_small, img_button_hover_small, "+", menu_button_font)
+musicvol_decrease = Button(volbutton_x1, volubtton_y + volbutton_y_change * 1, img_button_small, img_button_hover_small, "+", menu_button_font)
+soundfxvol_increase = Button(volbutton_x2, volubtton_y + volbutton_y_change * 2, img_button_small, img_button_hover_small, "+", menu_button_font)
+soundfxvol_decrease = Button(volbutton_x1, volubtton_y + volbutton_y_change * 2, img_button_small, img_button_hover_small, "+", menu_button_font)
+
+optionsmenu_buttons = [mastervol_increase, mastervol_decrease, musicvol_increase, musicvol_decrease, soundfxvol_increase, soundfxvol_decrease, back_button]
 
 buttons = [play_button, options_button, quit_button, scoreboard_button]
 
 
 def play():
 
-    music_manager.play_song(maingame, True, .2)
+    music_manager.play_song(maingame, True)
 
     render_group = Rendergroup()
 
@@ -115,14 +127,14 @@ def play():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            music_manager.volume_check(event)
+            music_manager.master_volume_game_change(event)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
-                    music_manager.play_soundfx(testsound, 1)
+                    music_manager.play_soundfx(testsound)
                 if event.key == pygame.K_o:
-                    music_manager.play_song(menu, True, 0.5)
+                    music_manager.play_song(menu, True)
                 if event.key == pygame.K_i:
-                    music_manager.play_song(maingame, True, 0.5)
+                    music_manager.play_song(maingame, True)
 
         if (pygame.key.get_pressed()[pygame.K_l]):
             if (l_pressed == False):
@@ -212,7 +224,9 @@ def options():
         mouse_buttons = pygame.mouse.get_pressed()
 
         screen.fill(BLACK)
-        back_button.draw(screen, mouse_pos)
+        # Check for hover
+        for button in optionsmenu_buttons:
+            button.draw(screen, mouse_pos)
         pygame.display.flip()
         # Check for clicking
         for event in pygame.event.get():
@@ -222,8 +236,21 @@ def options():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Cycle through the buttons that can be clicked -> perform their action
                 if back_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick, .5)
+                    music_manager.play_soundfx(menuclick)
                     main_menu()
+                elif mastervol_increase.is_clicked(mouse_pos):
+                    music_manager.change_mastervol(0.1)
+                elif mastervol_decrease.is_clicked(mouse_pos):
+                    music_manager.change_mastervol(-0.1)
+                elif musicvol_increase.is_clicked(mouse_pos):
+                    music_manager.change_musicvol(0.1)
+                elif musicvol_decrease.is_clicked(mouse_pos):
+                    music_manager.change_musicvol(-0.1)
+                elif soundfxvol_increase.is_clicked(mouse_pos):
+                    music_manager.change_soundfxvol(0.1)
+                elif soundfxvol_decrease.is_clicked(mouse_pos):
+                    music_manager.change_soundfxvol(-0.1)
+
         clock.tick(60)
 
 def quit():
@@ -235,7 +262,7 @@ def scoreboard():
 
 def main_menu():
 
-    music_manager.play_song(menu, True, .2)
+    music_manager.play_song(menu, True)
 
     # Game loop
     while True:
@@ -263,16 +290,16 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Cycle through the buttons that can be clicked -> perform their action
                 if play_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick, .5)
+                    music_manager.play_soundfx(menuclick)
                     play()
                 if options_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick, .5)
+                    music_manager.play_soundfx(menuclick)
                     options()
                 if quit_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick, .5)
+                    music_manager.play_soundfx(menuclick)
                     quit()
                 if scoreboard_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick, .5)
+                    music_manager.play_soundfx(menuclick)
                     scoreboard()
                 
 
