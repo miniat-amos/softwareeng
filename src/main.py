@@ -77,20 +77,20 @@ textsurface_logo = logo_font.render("Lightning Bolt Town", True, (255, 255, 255)
 play_button = Button(275, 300, img_button, img_button_hover, "Play", menu_button_font)
 options_button = Button(50, 475, img_button, img_button_hover, "Options", menu_button_font)
 quit_button = Button(505, 475, img_button, img_button_hover, "Quit", menu_button_font)
-back_button = Button(280, 500, img_button, img_button_hover, "Back", menu_button_font)
+back_button = Button(280, 600, img_button, img_button_hover, "Back", menu_button_font)
 scoreboard_button = Button(280, 600, img_button, img_button_hover, "Scoreboard", menu_button_font)
 
 # Options menu buttons
-volbutton_x1 = 250
-volbutton_x2 = 450
-volubtton_y = 100
-volbutton_y_change = 150
+volbutton_x1 = 150
+volbutton_x2 = 575
+volubtton_y = 90
+volbutton_y_change = 100
 mastervol_increase = Button(volbutton_x2, volubtton_y, img_button_small, img_button_hover_small, "+", menu_button_font)
-mastervol_decrease = Button(volbutton_x1, volubtton_y, img_button_small, img_button_hover_small, "+", menu_button_font)
+mastervol_decrease = Button(volbutton_x1, volubtton_y, img_button_small, img_button_hover_small, "-", menu_button_font)
 musicvol_increase = Button(volbutton_x2, volubtton_y + volbutton_y_change * 1, img_button_small, img_button_hover_small, "+", menu_button_font)
-musicvol_decrease = Button(volbutton_x1, volubtton_y + volbutton_y_change * 1, img_button_small, img_button_hover_small, "+", menu_button_font)
+musicvol_decrease = Button(volbutton_x1, volubtton_y + volbutton_y_change * 1, img_button_small, img_button_hover_small, "-", menu_button_font)
 soundfxvol_increase = Button(volbutton_x2, volubtton_y + volbutton_y_change * 2, img_button_small, img_button_hover_small, "+", menu_button_font)
-soundfxvol_decrease = Button(volbutton_x1, volubtton_y + volbutton_y_change * 2, img_button_small, img_button_hover_small, "+", menu_button_font)
+soundfxvol_decrease = Button(volbutton_x1, volubtton_y + volbutton_y_change * 2, img_button_small, img_button_hover_small, "-", menu_button_font)
 
 optionsmenu_buttons = [mastervol_increase, mastervol_decrease, musicvol_increase, musicvol_decrease, soundfxvol_increase, soundfxvol_decrease, back_button]
 
@@ -217,13 +217,29 @@ def play():
 def options():
     # Insert our main branch options configurations once ready
     # Rendering
+
+    # Text surface init
+    ts_mastervol = menu_button_font.render("Master Volume", True, WHITE)
+    ts_musicvol = menu_button_font.render("Music Volume", True, WHITE)
+    ts_soundfxvol = menu_button_font.render("Sound FXs Volume", True, WHITE)
+
+    ts_mastervol_centerx = (screen_width - ts_mastervol.get_rect().width) // 2
+    ts_musicvol_centerx = (screen_width - ts_musicvol.get_rect().width) // 2
+    ts_soundfxvol_centerx = (screen_width - ts_soundfxvol.get_rect().width) // 2
+
     while True:
 
         # Getting mouse data
         mouse_pos = pygame.mouse.get_pos()
-        mouse_buttons = pygame.mouse.get_pressed()
 
         screen.fill(BLACK)
+
+        # Drawing text for each set of buttons
+        
+        screen.blit(ts_mastervol, (ts_mastervol_centerx, 100))
+        screen.blit(ts_musicvol, (ts_musicvol_centerx, 200))
+        screen.blit(ts_soundfxvol, (ts_soundfxvol_centerx, 300))
+
         # Check for hover
         for button in optionsmenu_buttons:
             button.draw(screen, mouse_pos)
@@ -240,16 +256,22 @@ def options():
                     main_menu()
                 elif mastervol_increase.is_clicked(mouse_pos):
                     music_manager.change_mastervol(0.1)
+                    music_manager.play_soundfx(menuclick)
                 elif mastervol_decrease.is_clicked(mouse_pos):
                     music_manager.change_mastervol(-0.1)
+                    music_manager.play_soundfx(menuclick)
                 elif musicvol_increase.is_clicked(mouse_pos):
                     music_manager.change_musicvol(0.1)
+                    music_manager.play_soundfx(menuclick)
                 elif musicvol_decrease.is_clicked(mouse_pos):
                     music_manager.change_musicvol(-0.1)
+                    music_manager.play_soundfx(menuclick)
                 elif soundfxvol_increase.is_clicked(mouse_pos):
                     music_manager.change_soundfxvol(0.1)
+                    music_manager.play_soundfx(menuclick)
                 elif soundfxvol_decrease.is_clicked(mouse_pos):
                     music_manager.change_soundfxvol(-0.1)
+                    music_manager.play_soundfx(menuclick)
 
         clock.tick(60)
 
