@@ -272,7 +272,7 @@ class Room(StaticCollidable):
 			if render_area.colliderect(tile.get_rect()):
 				tile.fillRenderGroup(render_group)
 		for l in self.loot_list:
-			render_group.appendSky(l)
+			render_group.appendOnGround(l)
 		render_group.appendGround(self)
 	
 	# Checks player-related things like roof visibility

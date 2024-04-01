@@ -165,10 +165,7 @@ def play():
                 render_group.appendSky(l)
             else:
                 lightning_bolt_list.remove(l)
-        for lo in loot_list:
-            render_group.appendSky(lo)
-            if (lo.update(player)) == True:
-                loot_list.remove(lo)
+
 
 
         # Rendering prep
@@ -179,6 +176,10 @@ def play():
         # Rendering
         map.fillRendergroup(render_group)
         render_group.appendTo(player, 3)
+        for lo in loot_list:
+            #render_group.appendTo(lo, 2)   this doesn't seem to work but it renders properly in Map
+            if (lo.update(player)) == True:
+                loot_list.remove(lo)
         render_group.render(pre_screen, camera) # Render everything within the render group
 
         pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)
