@@ -22,5 +22,5 @@ ENEMY_SUMMONER_ANGLE_CHANGE = 0.01
 PLAYER_SPEED = 1
 
 #Enemy settings
-ENEMY_DEFAULT_SPEED = 0.75
+ENEMY_DEFAULT_SPEED = 1
 MELEE_ENEMY_ATTACK_SOUND = "assets/sounds/entities/enemies/melee/melee_attack_hit.ogg"

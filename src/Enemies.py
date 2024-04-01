@@ -54,25 +54,31 @@ class Enemy(Entity.GroundEntity):
         if (self.alive):
             self.move(player.get_rect().center)
 
-    def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
-        dx = player_pos[0] - self.get_rect().centerx
-        dy = player_pos[1] - self.get_rect().centery
-        distance = math.sqrt(dx * dx + dy * dy)
-        if distance < 0.25: return
-        checked_move = super().move((
-            dx/distance * self.speed, 
-            dy/distance * self.speed
-        ))
-        self.normalizeMove(checked_move)
-
 class MeleeEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN):
         super().__init__(folder, map, size, pos, health, attack_damage, speed)
+        self.last_move:tuple[float,float] = [0,0]
 
     def update(self, player:Player.Player):
         if (self.alive):
             self.melee_attack(player)
             self.move(player.get_rect().center)
+        
+    def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
+        dx = player_pos[0] - self.get_rect().centerx
+        dy = player_pos[1] - self.get_rect().centery
+        distance = math.sqrt(dx * dx + dy * dy)
+        if distance < 0.01: return
+        inertia:float = random.uniform(0.01,0.05)
+        x_move = dx/distance * self.speed
+        x_move = (x_move * inertia + self.last_move[0]*(1-inertia))#/2
+        y_move = dy/distance * self.speed
+        y_move = (y_move * inertia + self.last_move[1]*(1-inertia))#/2
+        checked_move = super().move((
+            x_move, y_move
+        ))
+        self.last_move = checked_move
+        self.normalizeMove(checked_move)
 
 class RangedEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, enemy_projectile_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_RANGED_COOLDOWN):
