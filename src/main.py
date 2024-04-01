@@ -11,7 +11,7 @@ from Rendergroup import Rendergroup
 import Lightning
 from ui import UI
 from Button import Button
-import Enemy
+import Enemies
 import Projectile
 import StaticMusicManager
 
@@ -100,7 +100,7 @@ def play():
     Lightning.setMap(map)
 
     lightning_bolt_list:list[Lightning.Lightning] = []
-    enemy_list:list[Enemy.Enemy] = []
+    enemy_list:list[Enemies.Enemy] = []
     #enemy_projectile_list:list[Projectile.Projectile] = []
 
     l_pressed = False
@@ -142,14 +142,14 @@ def play():
 
         if (pygame.key.get_pressed()[pygame.K_k]):
             if (k_pressed == False):
-                newe = Enemy.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20)#, 1)
+                newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20)#, 1)
                 enemy_list.append(newe)
             k_pressed = True
         else:
             k_pressed = False
         if (pygame.key.get_pressed()[pygame.K_LEFTBRACKET]):
             if (left_bracket_pressed == False):
-                newe = Enemy.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, enemy_projectile_list)
+                newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, enemy_projectile_list)
                 enemy_list.append(newe)
             left_bracket_pressed = True
         else:
@@ -157,7 +157,7 @@ def play():
 
         if (pygame.key.get_pressed()[pygame.K_RIGHTBRACKET]):
             if (right_bracket_pressed == False):
-                newe = Enemy.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, lightning_bolt_list)
+                newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, lightning_bolt_list)
                 enemy_list.append(newe)
             right_bracket_pressed = True
         else:
@@ -186,17 +186,17 @@ def play():
             if (newr == 0):						# spawn new lightning (with 5 second duration)
                 enemy_type = random.randrange(0,100,1)
                 e_x = random.randrange(0,SETTINGS.WR_WIDTH, 1)
-                newe:Enemy.Enemy
+                newe:Enemies.Enemy
                 if (player.direction_y == "up"):
                     e_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                 else:
                     e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                 if (enemy_type <= 50):
-                    newe = Enemy.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 100, 20)#, 1)
+                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 100, 20)#, 1)
                 elif (enemy_type <= 85):
-                    newe = Enemy.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 100, 20, enemy_projectile_list)
+                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 100, 20, enemy_projectile_list)
                 else:
-                    newe = Enemy.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
+                    newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
                 enemy_list.append(newe)
 
         
@@ -221,8 +221,10 @@ def play():
         for e in enemy_list:
             e.update(player)
             if (e.alive):
-                render_group.appendEntity(e)
-                
+                if isinstance(e, Enemies.SummonerEnemy):
+                    render_group.appendSky(e)
+                else:
+                    render_group.appendEntity(e)
             else:
                 enemy_list.remove(e)
 

@@ -7,6 +7,7 @@ import StaticMusicManager
 import Projectile
 import math
 import Lightning
+import random
 
 class Enemy(Entity.GroundEntity):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
@@ -87,7 +88,15 @@ class SummonerEnemy(Enemy):
         super().__init__(folder, map, size, pos, health, attack_damage, speed)
         self.lightning_bolt_list = lightning_bolt_list
         StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.mp3")
+        self.angle:float = math.radians(random.randrange(0,359, 1))
+        self.starting_pos = pos
 
     def update(self, player:Player.Player):
         if (self.alive):
+            self.angle += SETTINGS.ENEMY_SUMMONER_ANGLE_CHANGE
             self.summoner_attack(player)
+            self.move()
+
+    def move(self):
+        self.x = (0.5*math.cos(self.angle) + self.pos[0])
+        self.y = (0.5*math.sin(self.angle) + self.pos[1])
