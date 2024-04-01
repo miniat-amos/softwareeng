@@ -65,7 +65,7 @@ class Enemy(Entity.GroundEntity):
         self.normalizeMove(checked_move)
 
 class MeleeEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
+    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN):
         super().__init__(folder, map, size, pos, health, attack_damage, speed)
 
     def update(self, player:Player.Player):
@@ -74,16 +74,16 @@ class MeleeEnemy(Enemy):
             self.move(player.get_rect().center)
 
 class RangedEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, enemy_projectile_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
+    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, enemy_projectile_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_RANGED_COOLDOWN):
         super().__init__(folder, map, size, pos, health, attack_damage, speed)
         self.enemy_projectile_list = enemy_projectile_list
 
     def update(self, player:Player.Player):
-        if (self.alive):
+        if (self.alive and (abs(player.yi-self.yi) < SETTINGS.WR_HEIGHT)):
             self.ranged_attack(player)
 
 class SummonerEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, lightning_bolt_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
+    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, lightning_bolt_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_SUMMONER_COOLDOWN):
         super().__init__(folder, map, size, pos, health, attack_damage, speed)
         self.lightning_bolt_list = lightning_bolt_list
         StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.mp3")

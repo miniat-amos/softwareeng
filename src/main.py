@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import math
 
 import SETTINGS
 from Map import Map
@@ -176,8 +177,27 @@ def play():
                     l_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                 newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/",
                                 (l_x, l_y), FRAME_RATE * 5)
-                print(player.xi, l_x, player.yi, l_y)
                 lightning_bolt_list.append(newl)
+
+        # Spawn new enemies
+        if (current_frame == math.floor(FRAME_RATE/2)):	
+            # once per second:
+            newr = random.randrange(0,5,1)		# 20% random chance to
+            if (newr == 0):						# spawn new lightning (with 5 second duration)
+                enemy_type = random.randrange(0,100,1)
+                e_x = random.randrange(0,SETTINGS.WR_WIDTH, 1)
+                newe:Enemy.Enemy
+                if (player.direction_y == "up"):
+                    e_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                else:
+                    e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                if (enemy_type <= 50):
+                    newe = Enemy.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 100, 20)#, 1)
+                elif (enemy_type <= 85):
+                    newe = Enemy.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 100, 20, enemy_projectile_list)
+                else:
+                    newe = Enemy.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
+                enemy_list.append(newe)
 
         
         

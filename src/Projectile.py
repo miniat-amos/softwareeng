@@ -13,6 +13,7 @@ class Projectile(Entity.Entity):
         self.piercing = True
         self.currently_damaging = False
         self.starting_image:pygame.Surface = self.surface
+        self.tex_offset = [-3,-6]
 
     def update(self, player:Player.Player):
         if player.get_rect().colliderect(self.get_rect()):
