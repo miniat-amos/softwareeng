@@ -34,10 +34,10 @@ class Enemy(Entity.GroundEntity):
             if player.alive:
                 angle = math.degrees(math.atan((player.y-self.y) / (player.x-self.x)))
                 if (player.xi < self.xi): angle += 180
-                newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1, 20,
+                newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 20,
                                              angle)
                 self.enemy_projectile_list.append(newp)
-                StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.mp3")
+                StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav")
                 self.attack_cooldown = self.attack_cooldown_max
 
     def summoner_attack(self, player:Player.Player):
@@ -87,14 +87,15 @@ class SummonerEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, lightning_bolt_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_SUMMONER_COOLDOWN):
         super().__init__(folder, map, size, pos, health, attack_damage, speed)
         self.lightning_bolt_list = lightning_bolt_list
-        StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.mp3")
+        StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.wav", 0.5)
         self.angle:float = math.radians(random.randrange(0,359, 1))
         self.starting_pos = pos
 
     def update(self, player:Player.Player):
         if (self.alive):
             self.angle += SETTINGS.ENEMY_SUMMONER_ANGLE_CHANGE
-            self.summoner_attack(player)
+            if (abs(player.yi-self.yi) < (SETTINGS.WR_HEIGHT)):
+                self.summoner_attack(player)
             self.move()
 
     def move(self):

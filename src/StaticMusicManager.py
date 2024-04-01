@@ -27,7 +27,7 @@ def play_song(song, repeat, volume=1):
             pygame.mixer.music.play()
 
     # Play sound effect
-def play_soundfx(effect, volume=1):
+def play_soundfx(effect, volume:float=1):
     sound = pygame.mixer.Sound(effect)
     sound.set_volume(volume)
     sound.play()
