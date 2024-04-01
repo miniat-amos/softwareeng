@@ -69,7 +69,7 @@ class MeleeEnemy(Enemy):
         dy = player_pos[1] - self.get_rect().centery
         distance = math.sqrt(dx * dx + dy * dy)
         if distance < 0.01: return
-        inertia:float = random.uniform(0.01,0.05)
+        inertia:float = random.uniform(SETTINGS.INERTIA_RANGE_MIN, SETTINGS.INERTIA_RANGE_MAX)
         x_move = dx/distance * self.speed
         x_move = (x_move * inertia + self.last_move[0]*(1-inertia))#/2
         y_move = dy/distance * self.speed
@@ -88,6 +88,22 @@ class RangedEnemy(Enemy):
     def update(self, player:Player.Player):
         if (self.alive and (abs(player.yi-self.yi) < SETTINGS.WR_HEIGHT)):
             self.ranged_attack(player)
+            self.turn(player)
+
+    def turn(self, player:Player.Player):
+        xch = player.xi - self.xi
+        ych = player.yi - self.yi
+        if abs(xch) > abs(ych):
+            if (xch > 0):
+                self.surface = pygame.image.load(self.folder + "right.png")
+            else:
+                self.surface = pygame.image.load(self.folder + "left.png")
+        else:
+            if (ych > 0):
+                self.surface = pygame.image.load(self.folder + "down.png")
+            else:
+                self.surface = pygame.image.load(self.folder + "up.png")
+
 
 class SummonerEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, lightning_bolt_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_SUMMONER_COOLDOWN):

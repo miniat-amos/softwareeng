@@ -24,3 +24,5 @@ PLAYER_SPEED = 1
 #Enemy settings
 ENEMY_DEFAULT_SPEED = 1
 MELEE_ENEMY_ATTACK_SOUND = "assets/sounds/entities/enemies/melee/melee_attack_hit.ogg"
+INERTIA_RANGE_MIN = 0.01
+INERTIA_RANGE_MAX = 0.05
