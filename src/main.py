@@ -167,15 +167,19 @@ def play():
         if (current_frame == FRAME_RATE):	
             current_frame = 0				# once per second:
             newr = random.randrange(0,5,1)		# 20% random chance to
+            print(newr)
             if (newr == 0):						# spawn new lightning (with 5 second duration)
-                l_x = random.randrange(-100,SETTINGS.WIDTH+100, 1)
+                l_x = random.randrange(0,SETTINGS.WR_WIDTH, 1)
                 if (player.direction_y == "up"):
-                    l_y = player.y-SETTINGS.HEIGHT
+                    l_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                 else:
-                    l_y = player.y+SETTINGS.HEIGHT
+                    l_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                 newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/",
                                 (l_x, l_y), FRAME_RATE * 5)
+                print(player.xi, l_x, player.yi, l_y)
                 lightning_bolt_list.append(newl)
+
+        
         
 
         # Object updates

@@ -78,8 +78,10 @@ class GroundEntity(Entity):
         if (abs(move[1]) > abs(move[0])+0.25): # +0.25 is to prevent spazzing when moving perfectly diagonal
             if move[1] > 0:
                 self.surface = pygame.image.load(self.texture_folder + "down.png")
+                self.direction_y = "down"
             else:
                 self.surface = pygame.image.load(self.texture_folder + "up.png")
+                self.direction_y = "up"
         else:
             if move[0] > 0:
                 self.surface = pygame.image.load(self.texture_folder + "right.png")
