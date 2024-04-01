@@ -187,16 +187,27 @@ def play():
                 enemy_type = random.randrange(0,100,1)
                 e_x = random.randrange(0,SETTINGS.WR_WIDTH, 1)
                 newe:Enemies.Enemy
-                if (player.direction_y == "up"):
-                    e_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
-                else:
-                    e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
-                if (enemy_type <= 50):
-                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 100, 20)#, 1)
-                elif (enemy_type <= 85):
-                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 100, 20, enemy_projectile_list)
-                else:
-                    newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
+                position_good:bool = False
+                while (position_good == False):
+                    if (player.direction_y == "up"):
+                        e_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                    else:
+                        e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                    if (enemy_type <= 50):
+                        newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 100, 20)#, 1)
+                    elif (enemy_type <= 85):
+                        newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 100, 20, enemy_projectile_list)
+                    else:
+                        newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
+                    if isinstance(newe, Enemies.SummonerEnemy):
+                        position_good = True
+                    else:
+                        room_index = map.getRectRoomIndex(newe.get_rect())
+                        temp_good:bool = True
+                        for i in range (room_index-1, room_index+1):
+                            if (map.getRoom(i).collision_boolean(newe)):
+                                temp_good = False
+                        position_good = temp_good
                 enemy_list.append(newe)
 
         

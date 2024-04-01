@@ -136,6 +136,14 @@ class Building(Collision.StaticCollidable):
 
 		Collision.collision_snap(self, object, inital_pos)
 
+	def collision_boolean(self, object:Renderable) -> bool:
+		if self.isEmpty: return False
+
+		col = (self.get_rect().colliderect(object.get_rect()))
+		#if self.porch.burn_state > 1:
+			#move = Collision.collision_stop(self.porch.rect, object.rect, move)
+		return col
+
 	# Initializes building and roof surfaces
 	def initialize():
 		initializeSurfacesFR(["main_base.png", "main_roof.png"], 
