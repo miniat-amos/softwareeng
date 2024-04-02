@@ -184,7 +184,7 @@ def play():
             # once per second:
             newr = random.randrange(0,5,1)		# 20% random chance to
             if (newr == 0):						# spawn new lightning (with 5 second duration)
-                enemy_type = random.randrange(0,100,1)
+                enemy_type = random.randrange(1,100,1)
                 e_x = random.randrange(0,SETTINGS.WR_WIDTH, 1)
                 newe:Enemies.Enemy
                 position_good:bool = False
