@@ -31,10 +31,10 @@ while running:
 				sb.setFont(pygame.font.Font(None, fs))
 		elif event.type == pygame.MOUSEBUTTONDOWN:
 			if event.button == 4:  # Scroll up
-				sb.scrollUp()
+				sb.scrollUp(event.pos)
 			elif event.button == 5:  # Scroll down
-				sb.scrollDown()
-			elif event.button == 1:
+				sb.scrollDown(event.pos)
+			elif event.button == 1:  # Left click
 				sb.checkClick(event.pos)
 
 	screen.fill(FILLCOL)

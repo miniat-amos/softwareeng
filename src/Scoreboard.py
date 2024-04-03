@@ -115,7 +115,8 @@ class Scoreboard(Renderable):
 		self.scroll_pos = [0,0]
 
 		self.need_redraw_window = True
-		self.need_update_contents = True
+		self.need_redraw_contents = True
+		self.need_full_redraw = True
 		self.old_scroll = [-1,-1]
 		self.old_index = -1
 
@@ -127,6 +128,8 @@ class Scoreboard(Renderable):
 	
 	
 	def update(self):
+		### SCROLL ADJUSTMENTS ###
+
 		# Prevent from scrolling below scoreboard
 		dist_from_bottom = (Scoreboard.getCnt() - self.index + 1) * self.row_height - (self.u_height-1) - self.scroll_pos[1]
 		if dist_from_bottom < 0:
@@ -161,16 +164,25 @@ class Scoreboard(Renderable):
 
 		# Bound x-scroll to the x-bounds of the contents pane
 		self.scroll_pos[0] = tobounds(self.scroll_pos[0], 0, self.contents.get_width() - self.width + 2)
+
+
+		### REDRAWING ###
+
+		if self.need_full_redraw:
+			self.surface = pygame.Surface(self.size, pygame.SRCALPHA)
+			self.redrawHeader()
+			self.need_redraw_window = True
+			self.need_redraw_contents = True
 		
 		# If scroll has changed, redraw window
 		if self.scroll_pos[0] != self.old_scroll[0] \
 			or self.scroll_pos[1] != self.old_scroll[1] \
 			or self.index == self.old_index:
 			
-			self.need_update_contents = True
+			self.need_redraw_contents = True
 			self.need_redraw_window = True
 		
-		if self.need_update_contents:
+		if self.need_redraw_contents:
 			self.redrawContents()
 			self.need_redraw_window = True
 
@@ -179,7 +191,8 @@ class Scoreboard(Renderable):
 		
 		# Reset update check conditions
 		self.need_redraw_window = False
-		self.need_update_contents = False
+		self.need_redraw_contents = False
+		self.need_full_redraw = False
 		self.old_scroll = self.scroll_pos.copy()
 		self.old_index = self.index
 
@@ -216,7 +229,9 @@ class Scoreboard(Renderable):
 
 
 	# Scrolls the contents pane. Validation of scroll is checked in update()
-	def scroll(self, down:bool):
+	def scroll(self, mouse_pos:tuple[int,int], down:bool):
+		if not self.get_rect().collidepoint(mouse_pos): return
+
 		keys = pygame.key.get_pressed()
 		if keys[pygame.K_LSHIFT] or keys[pygame.K_RSHIFT]:
 			axis = 0
@@ -228,8 +243,8 @@ class Scoreboard(Renderable):
 		else:
 			self.scroll_pos[axis] -= SCROLL_AMOUNT
 
-	def scrollUp(self): self.scroll(False)
-	def scrollDown(self): self.scroll(True)
+	def scrollUp(self, mouse_pos:tuple[int,int]): self.scroll(mouse_pos, False)
+	def scrollDown(self, mouse_pos:tuple[int,int]): self.scroll(mouse_pos, True)
 
 
 	# Two opposing corners of the area of the rect
@@ -307,9 +322,9 @@ class Scoreboard(Renderable):
 		self.div2_x = self.user_x + self.user_w + self.right_padding
 		self.date_x = self.div2_x + self.left_padding
 		
-		self.redraw()
+		self.need_full_redraw = True
 
-
+	# Draws borders around the given surface in the given color
 	def drawBorders(surf:Surface, col:tuple[int,int,int,int] = (255,255,255,255)):
 		rect = surf.get_rect()
 		right, bottom = rect.right-1, rect.bottom-1
@@ -318,7 +333,7 @@ class Scoreboard(Renderable):
 		pygame.draw.line(surf, col, (left, bottom), (right, bottom))
 		pygame.draw.line(surf, col, (left, top), (left, bottom))
 		pygame.draw.line(surf, col, (right, top), (right, bottom))
-
+	# Draws column dividers given the x-values of each divider and a color
 	def drawColDivides(surf:Surface, lines:list[int], col:tuple[int,int,int,int] = (255,255,255,255)):
 		rect = surf.get_rect()
 		top, bottom = rect.top, rect.bottom-1
