@@ -52,6 +52,13 @@ class Entity(Renderable.Renderable):
             self.speed * move[1] / dist - move[1]
         ))
 
+    def lightning_move(self, move) -> tuple[float, float]:
+        # Get initial position
+        ini_rect = self.get_rect()
+        ini_pos = (self.x, self.y)
+        self.raw_move(move)
+        return (self.x-ini_pos[0], self.y-ini_pos[1])
+
 
 
 

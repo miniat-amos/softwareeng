@@ -9,6 +9,7 @@ import SETTINGS
 import StaticMusicManager
 import Player
 import StaticMusicManager
+import random
 
 MAP = None
 
@@ -25,6 +26,7 @@ class Lightning(Entity.Entity):
         self.surface.set_alpha(196)
         self.folder = folder
         self.time = time
+        self.last_move:tuple[float,float] = [0,0]
 
     def update(self, player):    #player pos refers to CENTER of player rect here and in move()
         self.time -= 1
@@ -60,7 +62,7 @@ class Lightning(Entity.Entity):
 
 
 
-    def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
+    def old_move_not_using(self, player_pos:tuple[int,int]):  #CENTER of player rect
         move = [0,0]
         horizontal_direction = 0    #   These keep track of horizontal and vertical direction. Left and down are -1,
         vertical_direction = 0      #   right and up are +1. These are used for changing direction image and for normalizing movement
@@ -91,3 +93,19 @@ class Lightning(Entity.Entity):
             self.y = max(player_pos[1], self.y + move[1])
         elif (vertical_direction == 1):
             self.y = min(player_pos[1], self.y + move[1])
+
+    def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
+        dx = player_pos[0] - self.get_rect().centerx
+        dy = player_pos[1] - self.get_rect().centery
+        distance = math.sqrt(dx * dx + dy * dy)
+        if distance < 0.01: return
+        inertia:float = random.uniform(SETTINGS.LIGHTNING_INERTIA_RANGE_MIN, SETTINGS.LIGHTNING_INERTIA_RANGE_MAX)
+        x_move = dx/distance * self.speed
+        x_move = (x_move * inertia + self.last_move[0]*(1-inertia))#/2
+        y_move = dy/distance * self.speed
+        y_move = (y_move * inertia + self.last_move[1]*(1-inertia))#/2
+        checked_move = super().lightning_move((
+            x_move, y_move
+        ))
+        self.last_move = checked_move
+        self.normalizeMove(checked_move)
