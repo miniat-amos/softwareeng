@@ -14,6 +14,7 @@ from Button import Button
 import Enemies
 import Projectile
 import StaticMusicManager
+import Loot
 
 FRAME_RATE = SETTINGS.FRAMERATE
 PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
@@ -108,6 +109,10 @@ def play():
     k_pressed = False
     left_bracket_pressed = False
     right_bracket_pressed = False
+    loot_list:list[Loot.Loot] = []
+
+    l_pressed = False
+    o_pressed = False
 
     i = PRINT_RATE
 
@@ -163,6 +168,14 @@ def play():
         else:
             right_bracket_pressed = False
 
+        if (pygame.key.get_pressed()[pygame.K_o]):
+            if (o_pressed == False):
+                newc = Loot.Loot((player.rect.centerx, player.rect.top-100), 10)
+                loot_list.append(newc)
+            o_pressed = True
+        else:
+            o_pressed = False
+
         # Spawn new lightning bolts
         current_frame += 1
         if (current_frame == FRAME_RATE):	
@@ -215,8 +228,9 @@ def play():
 
         # Object updates
         player.update()
-        player.set_points_increase_only(-player.y)
+        #player.set_points_increase_only(-player.y)
         player.button_functions() # Functions for player values
+        map.collide_loot(player)
         map.tick() # Update map	
         player.button_functions() #just functions for player values and stuff
 
@@ -247,6 +261,7 @@ def play():
                 enemy_projectile_list.remove(ep)
 
 
+
         # Rendering prep
         screen.fill(BG_COLOR)
         map.playerCheck(player)
@@ -255,6 +270,10 @@ def play():
         # Rendering
         map.fillRendergroup(render_group)
         render_group.appendTo(player, 3)
+        for lo in loot_list:
+            #render_group.appendTo(lo, 2)   this doesn't seem to work but it renders properly in Map
+            if (lo.update(player)) == True:
+                loot_list.remove(lo)
         render_group.render(pre_screen, camera) # Render everything within the render group
 
         pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)

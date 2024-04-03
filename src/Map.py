@@ -10,6 +10,10 @@ from Collision import StaticCollidable
 from Camera import Camera
 import random
 from Player import Player
+import Loot
+import SETTINGS
+import StaticMusicManager
+import Collision
 
 #	Lower indecies for a tile or room list will always mean "earlier" components.
 # I.e. if the player is moving forward, they will enter room[0], then room[1], etc.
@@ -164,6 +168,16 @@ class Map(StaticCollidable):
 	def getWidth(self):
 		return WIDTH
 	
+	def collide_loot(self, player:Player):
+		for i in range(self.__active_start_index, self.__active_start_index + self.__ACTIVE_ROOM_COUNT):
+			room = self.__room_list[i]
+			for l in room.loot_list:
+				if player.get_rect().colliderect(l.get_rect()):
+					StaticMusicManager.play_soundfx(SETTINGS.COIN_PICKUP_SOUND)
+					player.add_points(l.value)
+					room.loot_list.remove(l)
+			
+	
 	# Checks player-related things. For now, just hiding roofs if the player is under them
 	def playerCheck(self, player:Player):
 		for i in range(self.__active_start_index, self.__active_start_index + self.__ACTIVE_ROOM_COUNT):
@@ -218,6 +232,28 @@ class Room(StaticCollidable):
 			self.tile_list.append(tile)
 			pass
 	
+		self.loot_list:list[Loot.Loot] = []
+
+		i:int = 0
+		while (i < random.randint(SETTINGS.MIN_LOOT_PER_ROOM, SETTINGS.MAX_LOOT_PER_ROOM)):
+		#for i in range(0, 5):#random.randint(0,SETTINGS.MAX_LOOT_PER_ROOM)):
+			pos:tuple[int,int] = [random.randint(self.get_rect().left, self.get_rect().right), random.randint(self.get_rect().top, self.get_rect().bottom)]
+			long_val = random.randint(1,100)
+			if (long_val <= 10):
+				val = 1000
+			elif (long_val <= 50):
+				val = 100
+			else:
+				val = 10
+			# Note: loot value must currently be 10, 100, or 1000
+			l = Loot.Loot(pos, val)
+			if (self.collision_boolean(l)):
+				pass
+			else:
+				self.loot_list.append(l)
+				i += 1
+
+	
 	# Tick functions are run every frame and have no parameters
 	def tick(self):
 		pass
@@ -235,6 +271,8 @@ class Room(StaticCollidable):
 			tile = self.tile_list[i]
 			if render_area.colliderect(tile.get_rect()):
 				tile.fillRenderGroup(render_group)
+		for l in self.loot_list:
+			render_group.appendOnGround(l)
 		render_group.appendGround(self)
 	
 	# Checks player-related things like roof visibility
@@ -253,6 +291,14 @@ class Room(StaticCollidable):
 				or tile.top - TILE_HEIGHT < moving_object.bottom:
 				tile.collide_stop(moving_object, initial_pos)
 	
+	def collision_boolean(self, moving_object:Renderable) -> bool:
+		col:bool = False
+		for tile in self.tile_list:
+			if tile.get_rect().top - TILE_HEIGHT < moving_object.get_rect().top \
+				or tile.get_rect().bottom + TILE_HEIGHT > moving_object.get_rect().bottom:
+				col = col or tile.collision_boolean(moving_object)
+		return col
+
 	def collision_boolean(self, moving_object:Renderable) -> bool:
 		col:bool = False
 		for tile in self.tile_list:
@@ -297,6 +343,11 @@ class Tile(StaticCollidable):
 		self.building_left.collide_stop(moving_object, initial_pos)
 		self.building_right.collide_stop(moving_object, initial_pos)
 	
+	def collision_boolean(self, moving_object:Renderable) -> bool:
+		col1 = self.building_left.collision_boolean(moving_object)
+		col2 = col1 or self.building_right.collision_boolean(moving_object)
+		return col2
+
 	def collision_boolean(self, moving_object:Renderable) -> bool:
 		col1 = self.building_left.collision_boolean(moving_object)
 		col2 = col1 or self.building_right.collision_boolean(moving_object)

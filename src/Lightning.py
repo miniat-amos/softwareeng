@@ -5,6 +5,8 @@ import math
 import Collision
 import Building
 import Map
+import SETTINGS
+import StaticMusicManager
 import Player
 import StaticMusicManager
 
