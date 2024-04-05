@@ -27,6 +27,11 @@ class Button:
         self.img_button_hover = pygame.transform.scale(self.img_button_hover, (int(self.img_button_hover.get_width() * self.button_scale), int(self.img_button_hover.get_height() * self.button_scale)))
         self.img_button = pygame.transform.scale(self.img_button, (int(self.img_button.get_width() * self.button_scale), int(self.img_button.get_height() * self.button_scale)))
 
+    def setPos(self, x, y):
+        self.x = x
+        self.rect.x = x
+        self.y = y
+        self.rect.y = y
 
     def draw(self, screen, mouse_pos):
         if self.is_clicked(mouse_pos):

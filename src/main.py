@@ -11,6 +11,7 @@ import Lightning
 from MusicManager import MusicManager
 from ui import UI
 from Button import Button
+from Scoreboard import Scoreboard
 
 FRAME_RATE = SETTINGS.FRAMERATE
 PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
@@ -77,7 +78,7 @@ textsurface_logo = logo_font.render("Lightning Bolt Town", True, (255, 255, 255)
 play_button = Button(275, 300, img_button, "Play", menu_button_font)
 options_button = Button(50, 475, img_button, "Options", menu_button_font)
 quit_button = Button(505, 475, img_button, "Quit", menu_button_font)
-back_button = Button(280, 400, img_button, "Back", menu_button_font)
+back_button = Button(0, 0, img_button, "Back", menu_button_font)
 scoreboard_button = Button(280, 600, img_button, "Scoreboard", menu_button_font)
 
 buttons = [play_button, options_button, quit_button, scoreboard_button]
@@ -199,13 +200,13 @@ def play():
         clock.tick(FRAME_RATE)
 
     # Quit Pygame
-    pygame.quit()
-    sys.exit()
+    quit()
 
 
 def options():
     # Insert our main branch options configurations once ready
     # Rendering
+    back_button.setPos(280, 400)
     while True:
 
         # Getting mouse data
@@ -218,8 +219,7 @@ def options():
         # Check for clicking
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+                quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Cycle through the buttons that can be clicked -> perform their action
                 if back_button.is_clicked(mouse_pos):
@@ -229,10 +229,58 @@ def options():
 
 def quit():
     pygame.quit()
+    Scoreboard.export()
     exit()
 
 def scoreboard():
-    print("You clicked scoreboard - insert your scoreboard code here!")
+    margins = 50
+    
+    sb_size = (
+        SETTINGS.WIDTH - 2*margins,
+        SETTINGS.HEIGHT - 3*margins - back_button.rect.height
+    )
+
+    sb = Scoreboard(sb_size)
+
+    sb.topleft = (margins, margins)
+
+    back_button.setPos(
+        SETTINGS.WIDTH // 2 - back_button.rect.width // 2, 
+        sb.bottom + margins
+    )
+    
+    while True:
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_KP_PLUS:
+                    fs += 1
+                    sb.setFont(pygame.font.Font(None, fs))
+                elif event.key == pygame.K_KP_MINUS:
+                    fs -= 1
+                    sb.setFont(pygame.font.Font(None, fs))
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if back_button.is_clicked(event.pos):
+                    music_manager.play_soundfx(menuclick, .5)
+                    main_menu()
+                if event.button == 4:  # Scroll up
+                    sb.scrollUp(event.pos)
+                elif event.button == 5:  # Scroll down
+                    sb.scrollDown(event.pos)
+                elif event.button == 1:  # Left click
+                    sb.checkClick(event.pos)
+
+        screen.fill(BLACK)
+        sb.update()
+
+        screen.blit(sb.surface, sb.topleft)
+
+        back_button.draw(screen, pygame.mouse.get_pos())
+
+        pygame.display.flip()
+        clock.tick(60)
 
 def main_menu():
 
@@ -259,8 +307,7 @@ def main_menu():
         # Check for clicking
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+                quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Cycle through the buttons that can be clicked -> perform their action
                 if play_button.is_clicked(mouse_pos):

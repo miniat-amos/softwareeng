@@ -486,6 +486,10 @@ class Scoreboard(Renderable):
 
 
 	def export():
+		if not Scoreboard.scores_loaded or len(Scoreboard.scores_by_score) <= 0:
+			print("No scores were loaded, skipping export...")
+			return
+		
 		# Create a backup of the existing .sb
 		main_file = SB_DIR + SB_FILE
 		archive_file = main_file + 'a'
@@ -493,10 +497,14 @@ class Scoreboard(Renderable):
 			archive_file = getNewFilePath(archive_file)
 			os.rename(main_file, archive_file)
 
+
+		cnt = 0
 		# Write a new .sb file
 		with open(main_file, 'w+') as file:
 			for score in Scoreboard.scores_by_score:
 				file.write(score.__str__() + '\n')
+				cnt += 1
+		print("Exported %d scores" % cnt)
 		
 		# Delete temporary backup file
 		if os.path.exists(archive_file): os.remove(archive_file)

@@ -2,6 +2,7 @@ from Scoreboard import Scoreboard
 import string
 import re
 import pygame
+import sys
 
 pygame.init()
 
