@@ -37,34 +37,73 @@ def tobounds(n, mini, maxi): return max(mini, min(maxi, n))
 
 class Score():
 
-	def __init__(self, line:str) -> None:
-		self.valid = True
+	def __init__(self, line:str = "") -> None:
+		self.score = False
+		self.username = False
+		self.date = False
+		if line == "": return
+
 		str_list:list[str] = line.split(' ')
 		if len(str_list) < 3:
-			self.valid = False
+			print("Too few elements in generic text score line (%d)" % len(str_list))
 			return
 		
-		# Load score
+		self.setScore(str_list[0])
+		self.setUsername(str_list[1])
+		self.setDate(str_list[2])
+	
+
+	@property
+	def valid(self): return \
+		isinstance(self.score,int) \
+		and self.username \
+		and self.date
+
+
+	def setScore(self, score) -> bool:
+		if isinstance(score, int):
+			if score >= 0:
+				self.score = score
+				return True
+			else:
+				print("Negative scores are invalid")
+				self.score = False
+				return False
+		elif isinstance(score, str):
+			try:
+				self.score:int = int(score)
+				return True
+			except:
+				self.score = False
+				return False
+		else:
+			self.score = False
+			return False
+	
+	def setUsername(self, user:str) -> bool:
 		try:
-			self.score:int = int(str_list[0])
-		except:
-			self.valid = False
-			return
-		
-		# Load username
-		try:
-			username = NAME_FORM.match(str_list[1])
+			username = NAME_FORM.match(user)
 			self.username:str = username.string
+			return True
 		except:
-			self.valid = False
-			return
-		
-		# Load date
-		try:
-			self.date:datetime = datetime.strptime(str_list[2], DT_FORMAT)
-		except:
-			self.valid = False
-			return
+			username = False
+			return False
+	
+	def setDate(self, date) -> bool:
+		if isinstance(date, str):
+			try:
+				self.date:datetime = datetime.strptime(date, DT_FORMAT)
+				return True
+			except:
+				self.date = False
+				return False
+		elif isinstance(date, datetime):
+			self.date = date
+			return True
+		else:
+			self.date = False
+			return False
+
 
 	def scoreStr(self): return str(self.score)
 	def userStr(self): return self.username
@@ -87,6 +126,102 @@ class Score():
 def sortScore(obj:Score): return (-obj.score, obj.date, obj.username)
 def sortDate(obj:Score): return (obj.date, -obj.score, obj.username)
 def sortUser(obj:Score): return (obj.username, -obj.score, obj.date)
+
+# If the desired filepath given already exists, modify until it's unique, return the first unique one
+def getNewFilePath(desired_fp:str):
+	while os.path.exists(desired_fp):
+		dp = desired_fp.rfind('.')
+		desired_fp = desired_fp[:dp] + '.' + desired_fp[dp:]
+	return desired_fp
+
+
+class UsernameTextBox(Renderable):
+	def __init__(self, font:pygame.font.Font = -1, v_padding = 8, h_padding = 12):
+		super().__init__()
+		self.v_padding = v_padding
+		self.h_padding = h_padding
+		self.typing = False
+		self.need_redraw_text = True
+		self.text = "___"
+
+		self.font = font
+
+	def update(self):
+		if self.need_redraw_text:
+			self.redrawText()
+		
+		self.need_redraw_text = False
+
+	# Takes in the cursor position of a click and checks if the box was clicked
+	def checkClick(self, click_pos:tuple[int,int]):
+		if self.get_rect().collidepoint(click_pos):
+			self.typing = True
+		else:
+			self.typing = False
+
+
+	@property
+	def font(self): return self.__font
+	@font.setter
+	def font(self, set:pygame.font.Font):
+		if set != -1:
+			self.__font:pygame.font.Font = set
+		else:
+			self.__font:pygame.font.Font = pygame.font.Font(None, 24)
+		self.calcDimensions()
+
+	# Takes in a string of key inputs and tries to type them
+	def keyInput(self, input:str):
+		for char in input:
+			try:
+				i = self.text.index('_')
+				if char.isalpha():
+					self.text = self.text[:i] + char.upper() + self.text[i+1:]
+			except:
+				return # No "empty" spaces (underscores)
+		self.need_redraw_text = True
+
+	def backspace(self):
+		try:
+			i = self.text.index('_')
+			if i > 0:
+				self.text = self.text[:i-1] + '_' + self.text[i:]
+			else:
+				return
+		except:
+			self.text = self.text[:2] + '_'
+		self.need_redraw_text = True
+
+	# Redraw the text box
+	def redrawText(self):
+		self.surface.fill((0,0,0))
+		Scoreboard.drawBorders(self.surface)
+		self.surface.blit(self.font.render(self.text, True, SETTINGS.HD_TEXT_COLOR), (self.h_padding, self.v_padding))
+		pass
+	
+	# Recalculate dimensions of the text box (size is automatically set based on font)
+	def calcDimensions(self):
+		text_size = self.font.size('OOO')
+		self.size = (
+			text_size[0] + self.h_padding * 2,
+			text_size[1] + self.v_padding * 2
+		)
+		self.surface = Surface(self.size, pygame.SRCALPHA)
+
+	# Returns True when user has entered a valid username (meaning text box no longet need)
+	def addScore(self, score_n:int, date:datetime) -> bool:
+		score_sb = Score()
+		if not score_sb.setUsername(self.text):
+			print("Username must be exactly 3 alphabetical characters")
+			return False
+		
+		if not score_sb.setScore(score_n):
+			print("Internal error: Invalid score (", score_n, ")")
+		if not score_sb.setDate(date):
+			print("Internal error: Invalid datetime (", date, ")")
+
+		Scoreboard.insertScore(score_sb)
+
 
 
 # Scoreboard class
@@ -124,7 +259,7 @@ class Scoreboard(Renderable):
 		self.reverse_order = False
 		
 		self.size = size
-		self.setFont(font)
+		self.font = font
 	
 	
 	def update(self):
@@ -259,12 +394,14 @@ class Scoreboard(Renderable):
 		self.set_rect(Rect(top, left, width, height))
 		self.calcDimensions()
 
-
-	def setFont(self, font):
-		if font != -1:
-			self.font:pygame.font.Font = font
+	@property
+	def font(self): return self.__font
+	@font.setter
+	def font(self, set:pygame.font.Font):
+		if set != -1:
+			self.__font:pygame.font.Font = set
 		else:
-			self.font:pygame.font.Font = pygame.font.Font(None, 24)
+			self.__font:pygame.font.Font = pygame.font.Font(None, 24)
 		self.calcDimensions()
 
 
@@ -447,9 +584,12 @@ class Scoreboard(Renderable):
 
 	# Adds scores to each list (each list holds references to the same items, just sorted in a different order)
 	def insertScore(score:Score):
-		Scoreboard.scores_by_score.add(score)
-		Scoreboard.scores_by_date.add(score)
-		Scoreboard.scores_by_user.add(score)
+		if score.valid:
+			Scoreboard.scores_by_score.add(score)
+			Scoreboard.scores_by_date.add(score)
+			Scoreboard.scores_by_user.add(score)
+		else:
+			print("Invalid score:", score)
 
 
 	def __loadFile(file_path:str, invalids:list[str] = -1):
@@ -520,9 +660,3 @@ class Scoreboard(Renderable):
 		return s
 
 
-# If the desired filepath given already exists, modify until it's unique, return the first unique one
-def getNewFilePath(desired_fp:str):
-	while os.path.exists(desired_fp):
-		dp = desired_fp.rfind('.')
-		desired_fp = desired_fp[:dp] + '.' + desired_fp[dp:]
-	return desired_fp
