@@ -10,11 +10,11 @@ import Lightning
 import random
 
 class Enemy(Entity.GroundEntity):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
+    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float, attack_cooldown:int):
         super().__init__(folder, map, size, pos, health, speed)
         self.folder = folder
         self.attack_damage:int = attack_damage
-        self.attack_cooldown_max:int = SETTINGS.ENEMY_MELEE_COOLDOWN
+        self.attack_cooldown_max:int = attack_cooldown
         self.attack_cooldown:int = 0
         self.tex_offset = [-3,-6]
         self.enemy_projectile_list:list[Projectile.Projectile] = []
@@ -56,13 +56,13 @@ class Enemy(Entity.GroundEntity):
 
 class MeleeEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN):
-        super().__init__(folder, map, size, pos, health, attack_damage, speed)
+        super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.last_move:tuple[float,float] = [0,0]
 
     def update(self, player:Player.Player):
         if (self.alive):
             self.melee_attack(player)
-            self.move(player.get_rect().center)
+            self.move(player.pos)
         
     def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
         dx = player_pos[0] - self.get_rect().centerx
@@ -82,7 +82,7 @@ class MeleeEnemy(Enemy):
 
 class RangedEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, enemy_projectile_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_RANGED_COOLDOWN):
-        super().__init__(folder, map, size, pos, health, attack_damage, speed)
+        super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.enemy_projectile_list = enemy_projectile_list
 
     def update(self, player:Player.Player):
@@ -107,7 +107,7 @@ class RangedEnemy(Enemy):
 
 class SummonerEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, lightning_bolt_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_SUMMONER_COOLDOWN):
-        super().__init__(folder, map, size, pos, health, attack_damage, speed)
+        super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.lightning_bolt_list = lightning_bolt_list
         StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.wav", 0.25)
         self.angle:float = math.radians(random.randrange(0,359, 1))
@@ -121,5 +121,5 @@ class SummonerEnemy(Enemy):
             self.move()
 
     def move(self):
-        self.x = (0.5*math.cos(self.angle) + self.pos[0])
-        self.y = (0.5*math.sin(self.angle) + self.pos[1])
+        self.x = (SETTINGS.ENEMY_SUMMONER_CIRCLE_RADIUS*math.cos(self.angle) + self.starting_pos[0])
+        self.y = (SETTINGS.ENEMY_SUMMONER_CIRCLE_RADIUS*math.sin(self.angle) + self.starting_pos[1])

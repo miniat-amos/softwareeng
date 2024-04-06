@@ -291,13 +291,6 @@ class Room(StaticCollidable):
 				or tile.top - TILE_HEIGHT < moving_object.bottom:
 				tile.collide_stop(moving_object, initial_pos)
 	
-	def collision_boolean(self, moving_object:Renderable) -> bool:
-		col:bool = False
-		for tile in self.tile_list:
-			if tile.get_rect().top - TILE_HEIGHT < moving_object.get_rect().top \
-				or tile.get_rect().bottom + TILE_HEIGHT > moving_object.get_rect().bottom:
-				col = col or tile.collision_boolean(moving_object)
-		return col
 
 	def collision_boolean(self, moving_object:Renderable) -> bool:
 		col:bool = False

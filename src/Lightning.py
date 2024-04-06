@@ -60,8 +60,6 @@ class Lightning(Entity.Entity):
         # print("Base from Player: (%d, %d)" % (self.x-player.x, self.bottom-player.y))
         # print("From Player: (%d, %d)" % (self.x-player.x, self.y-player.y))
 
-
-
     def old_move_not_using(self, player_pos:tuple[int,int]):  #CENTER of player rect
         move = [0,0]
         horizontal_direction = 0    #   These keep track of horizontal and vertical direction. Left and down are -1,

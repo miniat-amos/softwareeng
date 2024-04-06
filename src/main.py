@@ -195,17 +195,17 @@ def play():
         # Spawn new enemies
         if (current_frame == math.floor(FRAME_RATE/2)):	
             # once per second:
-            newr = random.randrange(0,5,1)		# 20% random chance to
-            if (newr == 0):						# spawn new lightning (with 5 second duration)
+            newr = random.randrange(0,5,1)		# 1/6 random chance to
+            if (newr == 0):						# spawn new enemy
                 enemy_type = random.randrange(1,100,1)
                 newe:Enemies.Enemy
                 position_good:bool = False
                 while (position_good == False):
                     e_x = random.randrange(5,SETTINGS.WR_WIDTH-5, 1)
-                    if (player.direction_y == "up"):
-                        e_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
-                    else:
-                        e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                    #if (player.direction_y == "up"):
+                    e_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                    #else:
+                    #    e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                     if (enemy_type <= 50):
                         newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 100, 20)#, 1)
                     elif (enemy_type <= 85):
