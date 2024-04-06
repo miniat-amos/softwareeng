@@ -26,10 +26,10 @@ while running:
 		elif event.type == pygame.KEYDOWN:
 			if event.key == pygame.K_KP_PLUS:
 				fs += 1
-				sb.setFont(pygame.font.Font(None, fs))
+				sb.font = pygame.font.Font(None, fs)
 			elif event.key == pygame.K_KP_MINUS:
 				fs -= 1
-				sb.setFont(pygame.font.Font(None, fs))
+				sb.font = pygame.font.Font(None, fs)
 		elif event.type == pygame.MOUSEBUTTONDOWN:
 			if event.button == 4:  # Scroll up
 				sb.scrollUp(event.pos)
