@@ -15,6 +15,7 @@ from Renderable import Renderable
 # Format of scoreboard files
 #	[Score] [Username] [Datetime: %Y/%m/%d-%H:%M:%S]
 
+# Move to settings:
 SB_DIR = "Scores/"
 SB_FILE = "Scores.sb"
 ARCHIVE_DIR = SB_DIR + "Archive/"
@@ -658,5 +659,3 @@ class Scoreboard(Renderable):
 		for score in Scoreboard.scores_by_score:
 			s += score.fullDetailStr() + '\n'
 		return s
-
-
