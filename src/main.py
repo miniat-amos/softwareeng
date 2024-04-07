@@ -200,7 +200,7 @@ def play():
         if (current_frame == math.floor(FRAME_RATE/2)):	
             # once per second:
             newr = random.randrange(0,5,1)		# 1/6 random chance to
-            if (newr == 0):						# spawn new enemy
+            if (newr == -1):#0):						# spawn new enemy
                 enemy_type = random.randrange(1,100,1)
                 newe:Enemies.Enemy
                 position_good:bool = False

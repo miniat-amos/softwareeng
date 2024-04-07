@@ -7,6 +7,7 @@ class Camera:
         self.width = width
         self.height = height
         self.rect = pygame.Rect(0, 0, width, height)
+        self.render_area = self.rect.copy()
 
     def apply(self, target_rect:pygame.Rect) -> pygame.Rect:
         return target_rect.move(self.rect.topleft)

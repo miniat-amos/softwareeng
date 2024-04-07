@@ -78,7 +78,9 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     
     def ranged_attack(self):
         if (pygame.mouse.get_pressed()[0]):
-            print(pygame.mouse.get_pos() + self.camera.rect.topleft)
+            print(pygame.mouse.get_pos()[0] + self.camera.rect.left, 
+                  self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
+                  self.pos)
 
     def button_functions(self):
         if (pygame.key.get_pressed()[pygame.K_z]):
