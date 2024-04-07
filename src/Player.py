@@ -4,6 +4,7 @@ import Inventory
 import SETTINGS
 import Camera
 import math
+import Projectile
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def __init__(self, texture_folder:str, player_projectile_list, map = 0):
@@ -78,9 +79,13 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     
     def ranged_attack(self):
         if (pygame.mouse.get_pressed()[0]):
-            print(pygame.mouse.get_pos()[0] + self.camera.rect.left, 
+            print(pygame.mouse.get_pos()[0] + self.camera.render_area.left, 
                   self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
                   self.pos)
+            angle:float = 1
+            newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 0,
+                                             angle)
+            self.projectile_list.append(newp)
 
     def button_functions(self):
         if (pygame.key.get_pressed()[pygame.K_z]):
