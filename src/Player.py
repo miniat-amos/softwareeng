@@ -8,7 +8,7 @@ import Projectile
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def __init__(self, texture_folder:str, player_projectile_list, map = 0):
-        super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
+        super().__init__(   texture_folder, map,    (16,16),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
         self.inventory = Inventory.Inventory()
