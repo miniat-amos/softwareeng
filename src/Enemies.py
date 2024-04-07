@@ -24,7 +24,7 @@ class Enemy(Entity.GroundEntity):
         self.attack_cooldown = max(self.attack_cooldown-1, 0)
         if (self.attack_cooldown == 0):
             if (self.get_rect().colliderect(player.get_rect())) and player.alive:
-                player.lower_health(self.attack_damage)
+                player.damage(self.attack_damage)
                 StaticMusicManager.play_soundfx(SETTINGS.MELEE_ENEMY_ATTACK_SOUND)
                 self.attack_cooldown = self.attack_cooldown_max
 
@@ -58,9 +58,8 @@ class Enemy(Entity.GroundEntity):
                 self.attack_cooldown = self.attack_cooldown_max
 
 
-    def update(self, player:Player.Player):
-        if (self.alive):
-            self.move(player.get_rect().center)
+    def update(self):
+        super().update()
 
 class MeleeEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN):
@@ -71,6 +70,7 @@ class MeleeEnemy(Enemy):
         if (self.alive):
             self.melee_attack(player)
             self.move(player.pos)
+            super().update()
         
     def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
         dx = player_pos[0] - self.get_rect().centerx
@@ -97,6 +97,7 @@ class RangedEnemy(Enemy):
         if (self.alive and (abs(player.yi-self.yi) < SETTINGS.WR_HEIGHT)):
             self.ranged_attack(player)
             self.turn(player)
+            super().update()
 
     def turn(self, player:Player.Player):
         xch = player.xi - self.xi
@@ -127,6 +128,7 @@ class SummonerEnemy(Enemy):
             if (abs(player.yi-self.yi) < (SETTINGS.WR_HEIGHT)):
                 self.summoner_attack(player)
             self.move()
+            super().update()
 
     def move(self):
         self.x = (SETTINGS.ENEMY_SUMMONER_CIRCLE_RADIUS*math.cos(self.angle) + self.starting_pos[0])

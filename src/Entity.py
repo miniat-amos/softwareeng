@@ -6,7 +6,7 @@ import Collision
 from Collision import StaticCollidable
 
 class Entity(Renderable.Renderable):
-    def __init__(self, texture, size, pos, health, speed:float):
+    def __init__(self, texture, size, pos, health, speed:float, iframes:int = SETTINGS.FRAMERATE):
         super().__init__(   texture,      size,  pos)
         #                   ^ img file                  ^ size      ^start pos
         self.speed = speed
@@ -15,12 +15,25 @@ class Entity(Renderable.Renderable):
         self.alive = True
         self._x:float = pos[0]
         self._y:float = pos[1]
+        self.iframes:int = 0
+        self.iframes_max:int = iframes
+
+    def update(self):
+        self.iframes = max(0, self.iframes-1)
 
     def lower_health(self, value:int):
         self.health -= value
         self.health = max(0,self.health)
         if (self.health == 0):
             self.alive = False
+
+    def damage(self, value:int):    #lower health but with after-damage i-frames
+        if (self.iframes == 0):
+            self.health -= value
+            self.health = max(0,self.health)
+            if (self.health == 0):
+                self.alive = False
+            self.iframes = self.iframes_max
 
     def increase_health(self, value:int):
         self.health += value
@@ -70,6 +83,9 @@ class GroundEntity(Entity):
         self.texture_folder = texture_folder
         self.map:StaticCollidable = map
         self.direction_y = "down"
+    
+    def update(self):
+        super().update()
     
     # Checks collisions, moves, and returns the movement vector
     # UNNORMALIZED - Does not check if the movement vector exceeds the max speed

@@ -258,20 +258,21 @@ def play():
                 enemy_list.remove(e)
 
         for ep in enemy_projectile_list:
-            ep.update(player)
+            ep.damage_check(player)
             if (ep.alive) and camera.render_area.colliderect(ep.get_rect()):
                 render_group.appendSky(ep)
             else:
                 enemy_projectile_list.remove(ep)
+            ep.update()
 
         for p in player_projectile_list:
             for e in enemy_list:
-                p.update(e)
+                p.damage_check(e)
             if (p.alive) and camera.render_area.colliderect(p.get_rect()):
                 render_group.appendSky(p)
             else:
                 player_projectile_list.remove(p)
-            p.move()
+            p.update()
 
 
 

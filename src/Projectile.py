@@ -15,7 +15,7 @@ class Projectile(Entity.Entity):
         self.starting_image:pygame.Surface = self.surface
         self.tex_offset = [-3,-6]
 
-    def update(self, target:Renderable.Renderable):
+    def damage_check(self, target:Renderable.Renderable):
         if target.get_rect().colliderect(self.get_rect()):
             if (self.currently_damaging == False):
                 target.lower_health(self.damage)
@@ -24,8 +24,11 @@ class Projectile(Entity.Entity):
                     self.kill()
         else:
             self.currently_damaging = False
-        #if (self.alive):
-        #    self.move()
+
+    def update(self):
+        if (self.alive):
+            self.move()
+            super().update()
 
     def move(self):
         self.surface = pygame.transform.rotate(self.starting_image, -self.angle)

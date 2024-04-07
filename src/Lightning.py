@@ -35,7 +35,7 @@ class Lightning(Entity.Entity):
         elif (self.time == -SETTINGS.FRAMERATE):
             self.kill()
         if (self.time > 0):
-            self.move(player.posi)
+            self.move(player.pos)
 
 
 
@@ -51,7 +51,7 @@ class Lightning(Entity.Entity):
 
         if (do_player_damage):
             if (self.get_rect().colliderect(player.get_rect())):
-                player.lower_health(20)
+                player.damage(20)
         
         self.surface = pygame.image.load(self.folder + "bolt.png")
         StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/lightning/static_zap.wav")

@@ -8,7 +8,7 @@ import Projectile
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def __init__(self, texture_folder:str, player_projectile_list, map = 0):
-        super().__init__(   texture_folder, map,    (16,16),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
+        super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
         self.inventory = Inventory.Inventory()
@@ -43,6 +43,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
         if (self.alive):
             self.move()
             self.ranged_attack()
+            super().update()
 
     def move(self):
         horizontal_direction = 0    #   These keep track of horizontal and vertical direction. Left and down are -1,
@@ -94,8 +95,9 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             else:
                 angle = math.degrees(math.atan((ydiff) / (xdiff)))
             if (xdiff < 0): angle += 180
-            newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 20,
-                                             angle)
+            newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), 
+                                         (self.pos[0] + 3, self.pos[1] + 3),
+                                         1, 1.5, 20, angle)
             self.projectile_list.append(newp)
 
     def button_functions(self):
