@@ -84,8 +84,16 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
                   self.pos)
             cy = 4*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1])
             cx = pygame.mouse.get_pos()[0] + self.camera.render_area.left
-            angle:float = math.degrees(math.atan((cy- 4*self.y) / (cx- 4*self.x)))
-            if (cx < 4*self.xi): angle += 180
+            xdiff = cx - SETTINGS.SCALE * self.x
+            ydiff = cy - SETTINGS.SCALE * self.y
+            if (xdiff == 0):
+                if (ydiff < 0):
+                    angle = 270
+                else:
+                    angle = 90
+            else:
+                angle = math.degrees(math.atan((ydiff) / (xdiff)))
+            if (xdiff < 0): angle += 180
             newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 0,
                                              angle)
             self.projectile_list.append(newp)
