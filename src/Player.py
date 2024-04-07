@@ -94,7 +94,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             else:
                 angle = math.degrees(math.atan((ydiff) / (xdiff)))
             if (xdiff < 0): angle += 180
-            newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 0,
+            newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 20,
                                              angle)
             self.projectile_list.append(newp)
 

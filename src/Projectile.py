@@ -24,8 +24,8 @@ class Projectile(Entity.Entity):
                     self.kill()
         else:
             self.currently_damaging = False
-        if (self.alive):
-            self.move()
+        #if (self.alive):
+        #    self.move()
 
     def move(self):
         self.surface = pygame.transform.rotate(self.starting_image, -self.angle)
