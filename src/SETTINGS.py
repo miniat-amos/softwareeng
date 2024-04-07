@@ -4,8 +4,8 @@ FRAMERATE = 60
 
 
 # Might not get used in the final version, I just wanted to be able to hear my music when testing lmao
-VOL_SFX = .1
-VOL_MUSIC = .1
+VOL_SFX = 0.1
+VOL_MUSIC = 0.1
 
 
 # World gen settings

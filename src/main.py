@@ -12,6 +12,7 @@ from MusicManager import MusicManager
 from ui import UI
 from Button import Button
 from Scoreboard import Scoreboard
+from Renderable import Renderable
 
 FRAME_RATE = SETTINGS.FRAMERATE
 PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
@@ -35,18 +36,11 @@ pygame.display.set_caption("WASD to move, press 1 to spawn object at player pos"
 BG_COLOR = (255, 63, 127)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+RED = (245, 18, 2)
 
-# Set up the player
-player = Player.Player("assets/sprites/entities/players/cowboy/")
-
-# Create UI
-ui = UI(player)
 
 # Set up clock
 clock = pygame.time.Clock()
-
-# Set up the camera
-camera = Camera(player, SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT)
 
 # Set up the music manager
 music_manager = MusicManager()
@@ -55,6 +49,8 @@ maingame = 'assets/music/Maingame.mp3'
 menu = 'assets/music/Menu.mp3'
 menuclick = 'assets/sounds/menuselect.mp3'
 testsound = 'assets/sounds/testsound.mp3'
+music_gameover = 'assets/music/GameOver.mp3'
+sound_fadeaway = 'assets/sounds/fadeaway.mp3'
 
 # Button setup
 menu_button_font = pygame.font.Font(None, 48)
@@ -86,7 +82,20 @@ buttons = [play_button, options_button, quit_button, scoreboard_button]
 
 def play():
 
-    music_manager.play_song(maingame, True, .2)
+    gameover_ticks = 0
+    gameover_delay = 200
+    dying = False
+    
+    # Set up the player
+    player = Player.Player("assets/sprites/entities/players/cowboy/")
+
+    # Create UI
+    ui = UI(player)
+
+    # Set up the camera
+    camera = Camera(player, SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT)
+
+    music_manager.play_song(maingame, True, .5)
 
     render_group = Rendergroup()
 
@@ -94,6 +103,7 @@ def play():
     # Render distance should be set to (screen height / 2) normally
     map = Map(camera, render_group, 4, 60)
     map.setStartPosOf(player)
+    print(player.pos)
 
     player.map = map
 
@@ -112,92 +122,124 @@ def play():
     # Game loop1
     running = True
     while running:
-        # Event handling
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            music_manager.volume_check(event)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    music_manager.play_soundfx(testsound, 1)
-                if event.key == pygame.K_o:
-                    music_manager.play_song(menu, True, 0.5)
-                if event.key == pygame.K_i:
-                    music_manager.play_song(maingame, True, 0.5)
 
-        if (pygame.key.get_pressed()[pygame.K_l]):
-            if (l_pressed == False):
-                newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/", (player.x, player.top-SETTINGS.WR_HEIGHT), FRAME_RATE * 5)
-                lightning_bolt_list.append(newl)
-            l_pressed = True
+        # Check for game over
+        if player.health <= 0 and not dying:
+            music_manager.play_soundfx(sound_fadeaway, 0.25)
+            music_manager.set_volume(0)
+            dying = True
+
+        if dying:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+            screen.fill(BLACK)
+            render_group.appendTo(player, 3)
+            render_group.render(screen, camera)
+
+            # Fading the player via an opacity rect
+            fadescreen = pygame.Surface((screen_width, screen_height))  # the size of your rect
+            fadescreen.set_alpha(gameover_ticks)                # alpha level
+            fadescreen.fill((0,0,0))           # this fills the entire surface
+            screen.blit(fadescreen, (0,0))    # (0,0) are the top-left coordinates
+            
+            # Refresh the display
+            pygame.display.flip()
+            clock.tick(FRAME_RATE)
+
+            # To have some time before going to game over screen
+            gameover_ticks += 1
+            if gameover_ticks >= gameover_delay:
+                game_over()
+        
+        # Not dying
         else:
-            l_pressed = False
-        
-        # Spawn new lightning bolts
-        current_frame += 1
-        if (current_frame == FRAME_RATE):	
-            current_frame = 0				# once per second:
-            newr = random.randrange(0,5,1)		# 20% random chance to
-            if (newr == 0):						# spawn new lightning (with 5 second duration)
-                l_x = random.randrange(-100,SETTINGS.WIDTH+100, 1)
-                if (player.direction_y == "up"):
-                    l_y = player.y-SETTINGS.HEIGHT
-                else:
-                    l_y = player.y+SETTINGS.HEIGHT
-                newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/",
-                                (l_x, l_y), FRAME_RATE * 5)
-                lightning_bolt_list.append(newl)
-        
+            # Event handling
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                music_manager.volume_check(event)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:
+                        music_manager.play_soundfx(testsound, 1)
+                    if event.key == pygame.K_o:
+                        music_manager.play_song(menu, True, 0.5)
+                    if event.key == pygame.K_i:
+                        music_manager.play_song(maingame, True, 0.5)
 
-        # Object updates
-        player.update()
-        player.set_points_increase_only(-player.y)
-        player.button_functions() # Functions for player values
-        map.tick() # Update map	
-        player.button_functions() #just functions for player values and stuff
-
-        # Update lighting bolts and add them to the render group
-        for l in lightning_bolt_list:
-            l.update(player)
-            if (l.alive):
-                render_group.appendSky(l)
+            if (pygame.key.get_pressed()[pygame.K_l]):
+                if (l_pressed == False):
+                    newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/", (player.x, player.top-SETTINGS.WR_HEIGHT), FRAME_RATE * 5)
+                    lightning_bolt_list.append(newl)
+                l_pressed = True
             else:
-                lightning_bolt_list.remove(l)
+                l_pressed = False
+            
+            # Spawn new lightning bolts
+            current_frame += 1
+            if (current_frame == FRAME_RATE):	
+                current_frame = 0				# once per second:
+                newr = random.randrange(0,5,1)		# 20% random chance to
+                if (newr == 0):						# spawn new lightning (with 5 second duration)
+                    l_x = random.randrange(-100,SETTINGS.WIDTH+100, 1)
+                    if (player.direction_y == "up"):
+                        l_y = player.y-SETTINGS.HEIGHT
+                    else:
+                        l_y = player.y+SETTINGS.HEIGHT
+                    newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/",
+                                    (l_x, l_y), FRAME_RATE * 5)
+                    lightning_bolt_list.append(newl)
+            
+
+            # Object updates
+            player.update()
+            player.set_points_increase_only(-player.y)
+            player.button_functions() # Functions for player values
+            map.tick() # Update map	
+            player.button_functions() #just functions for player values and stuff
+
+            # Update lighting bolts and add them to the render group
+            for l in lightning_bolt_list:
+                l.update(player)
+                if (l.alive):
+                    render_group.appendSky(l)
+                else:
+                    lightning_bolt_list.remove(l)
 
 
-        # Rendering prep
-        screen.fill(BG_COLOR)
-        map.playerCheck(player)
-        camera.update()
+            # Rendering prep
+            screen.fill(BG_COLOR)
+            map.playerCheck(player)
+            camera.update()
 
-        # Rendering
-        map.fillRendergroup(render_group)
-        render_group.appendTo(player, 3)
-        render_group.render(pre_screen, camera) # Render everything within the render group
+            # Rendering
+            map.fillRendergroup(render_group)
+            render_group.appendEntity(player)
+            render_group.render(pre_screen, camera) # Render everything within the render group
 
-        pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)
+            pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)
 
-        # Drawing the UI last
-        ui.draw(screen, ui_font, WHITE)
+            # Drawing the UI last
+            ui.draw(screen, ui_font, WHITE)
 
-        # Refresh the display
-        pygame.display.flip()
+            # Refresh the display
+            pygame.display.flip()
 
-        # Renderng cleanup
-        render_group.clearAll()
-        
-        i -= 1
-        
-        if i < 1:
-            # print(map.getStats())
-            # print(clock.get_fps())
-            # print("Player Health =", player.health)
-            i = PRINT_RATE
+            # Renderng cleanup
+            render_group.clearAll()
+            
+            i -= 1
+            
+            if i < 1:
+                # print(map.getStats())
+                # print(clock.get_fps())
+                # print("Player Health =", player.health)
+                i = PRINT_RATE
 
-        
-        
-        # Cap the frame rate
-        clock.tick(FRAME_RATE)
+                
+                
+            # Cap the frame rate
+            clock.tick(FRAME_RATE)
 
     # Quit Pygame
     quit()
@@ -225,7 +267,7 @@ def options():
                 if back_button.is_clicked(mouse_pos):
                     music_manager.play_soundfx(menuclick, .5)
                     main_menu()
-        clock.tick(60)
+        clock.tick(FRAME_RATE)
 
 def quit():
     pygame.quit()
@@ -284,7 +326,7 @@ def scoreboard():
 
 def main_menu():
 
-    music_manager.play_song(menu, True, .2)
+    music_manager.play_song(menu, True, 1)
 
     # Game loop
     while True:
@@ -325,7 +367,70 @@ def main_menu():
                 
 
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(FRAME_RATE)
 
+def game_over():
+
+    # Called after the player fades away 
+
+    # Creating both fonts
+    gameover_font = pygame.font.SysFont("mvboli", 120)
+    gameover_directions_font = pygame.font.SysFont("mvboli", 50)
+
+    # Setting alpha related variables
+    gameover_alpha = 0
+    alpha_increase = .75
+
+    # Setting up text surfaces
+    textsurface_gameover = gameover_font.render("Game Over", True, RED)
+    textsurface_directions = gameover_directions_font.render("Press any key to continue", True, RED)
+
+    # Setting initial alpha (to zero)
+    textsurface_gameover.set_alpha(gameover_alpha)
+    textsurface_directions.set_alpha(gameover_alpha)
+
+    # Setting rectangles
+    gameover_font_rect = textsurface_gameover.get_rect(center=(screen_width/2, screen_height/2.5))
+    directions_font_rect = textsurface_gameover.get_rect(center=(screen_width/2, screen_height/1.5))
+
+    # Play the game over music
+    music_manager.play_song(music_gameover, False, .5)
+    running = True
+
+    # Game loop
+    while running:
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN and gameover_alpha >= 200:
+                # Start decreasing opacity after keyboard hit
+                alpha_increase *= -1
+
+        screen.fill(BLACK)
+
+        # Logic to increase or decrease alpha
+        if gameover_alpha <= 200 or alpha_increase < 0:
+            gameover_alpha += alpha_increase
+            textsurface_gameover.set_alpha(gameover_alpha)
+            textsurface_directions.set_alpha(gameover_alpha)
+
+        # Back to main menu upon fade out
+        if gameover_alpha <= 0:
+            main_menu()
+            
+        # Drawing the text
+        screen.blit(textsurface_gameover, gameover_font_rect)
+        screen.blit(textsurface_directions, directions_font_rect)
+
+        # Refresh the display
+        pygame.display.flip()
+
+        # Cap the frame rate
+        clock.tick(FRAME_RATE)
+
+    # Quit Pygame
+    pygame.quit()
+    sys.exit()
 
 main_menu()

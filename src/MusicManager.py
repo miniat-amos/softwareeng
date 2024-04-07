@@ -43,3 +43,4 @@ class MusicManager:
             elif event.key == pygame.K_DOWN:
                 self.standard_volume -= .1
         self.set_volume(self.standard_volume)
+        
