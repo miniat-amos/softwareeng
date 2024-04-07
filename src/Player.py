@@ -7,7 +7,7 @@ import math
 import Projectile
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
-    def __init__(self, texture_folder:str, player_projectile_list, map = 0):
+    def __init__(self, texture_folder:str, player_projectile_list, map = 0, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
         super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
@@ -16,6 +16,8 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
         self.tex_offset = [-3,-6]
         self.camera:Camera.Camera
         self.projectile_list = player_projectile_list
+        self.attack_cooldown:int = attack_cooldown
+        self.attack_cooldown_max:int = attack_cooldown
 
     def set_camera(self, camera:Camera.Camera):
         self.camera = camera
@@ -41,6 +43,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     
     def update(self):
         if (self.alive):
+            self.attack_cooldown = max(0, self.attack_cooldown-1)
             self.move()
             self.ranged_attack()
             super().update()
@@ -79,7 +82,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
                 self.x += undoAxis(checked_move[0], checked_move[1], self.speed)
     
     def ranged_attack(self):
-        if (pygame.mouse.get_pressed()[0]):
+        if (pygame.mouse.get_pressed()[0] and self.attack_cooldown == 0):
             print(pygame.mouse.get_pos()[0] + self.camera.render_area.left, 
                   4*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
                   self.pos)
@@ -99,6 +102,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
                                          (self.pos[0] + 3, self.pos[1] + 3),
                                          1, 1.5, 20, angle)
             self.projectile_list.append(newp)
+            self.attack_cooldown = self.attack_cooldown_max
 
     def button_functions(self):
         if (pygame.key.get_pressed()[pygame.K_z]):
