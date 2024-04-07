@@ -51,6 +51,8 @@ clock = pygame.time.Clock()
 # Set up the camera
 camera = Camera(player, SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT)
 
+player.set_camera(camera)
+
 # Songs
 maingame = 'assets/music/Maingame.mp3'
 menu = 'assets/music/Menu.mp3'

@@ -2,6 +2,7 @@ import pygame
 import Entity
 import Inventory
 import SETTINGS
+import Camera
 import math
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
@@ -12,6 +13,10 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
         self.inventory = Inventory.Inventory()
         self.build = 0
         self.tex_offset = (-3,-6)
+        self.camera:Camera.Camera
+
+    def set_camera(self, camera:Camera.Camera):
+        self.camera = camera
     
     def add_points(self, amount:int):
         if (amount < 0):
@@ -35,6 +40,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def update(self):
         if (self.alive):
             self.move()
+            self.ranged_attack()
 
     def move(self):
         horizontal_direction = 0    #   These keep track of horizontal and vertical direction. Left and down are -1,
@@ -68,6 +74,10 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             # If Y-movement is greater, adjust Y-movement only
             else:
                 self.x += undoAxis(checked_move[0], checked_move[1], self.speed)
+    
+    def ranged_attack(self):
+        if (pygame.mouse.get_pressed()[0]):
+            print(pygame.mouse.get_pos() + self.camera.rect.topleft)
 
     def button_functions(self):
         if (pygame.key.get_pressed()[pygame.K_z]):
