@@ -32,8 +32,16 @@ class Enemy(Entity.GroundEntity):
         self.attack_cooldown = max(self.attack_cooldown-1, 0)
         if (self.attack_cooldown == 0):
             if player.alive:
-                angle = math.degrees(math.atan((player.y-self.y) / (player.x-self.x)))
-                if (player.xi < self.xi): angle += 180
+                xdiff = player.x - self.x
+                ydiff = player.y - self.y
+                if (xdiff == 0):
+                    if (ydiff < 0):
+                        angle = 270
+                    else:
+                        angle = 90
+                else:
+                    angle = math.degrees(math.atan((player.y-self.y) / (xdiff)))
+                if (xdiff < 0): angle += 180
                 newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 20,
                                              angle)
                 self.enemy_projectile_list.append(newp)

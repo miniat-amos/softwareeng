@@ -158,7 +158,7 @@ def play():
             k_pressed = False
         if (pygame.key.get_pressed()[pygame.K_LEFTBRACKET]):
             if (left_bracket_pressed == False):
-                newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, enemy_projectile_list)
+                newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, enemy_projectile_list)
                 enemy_list.append(newe)
             left_bracket_pressed = True
         else:

@@ -13,7 +13,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
         self.points = 0 #probably best to store points/money directly, rather than in inventory
         self.inventory = Inventory.Inventory()
         self.build = 0
-        self.tex_offset = (-3,-6)
+        self.tex_offset = [-3,-6]
         self.camera:Camera.Camera
         self.projectile_list = player_projectile_list
 
@@ -80,9 +80,12 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def ranged_attack(self):
         if (pygame.mouse.get_pressed()[0]):
             print(pygame.mouse.get_pos()[0] + self.camera.render_area.left, 
-                  self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
+                  4*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
                   self.pos)
-            angle:float = 1
+            cy = 4*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1])
+            cx = pygame.mouse.get_pos()[0] + self.camera.render_area.left
+            angle:float = math.degrees(math.atan((cy- 4*self.y) / (cx- 4*self.x)))
+            if (cx < 4*self.xi): angle += 180
             newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 0,
                                              angle)
             self.projectile_list.append(newp)
