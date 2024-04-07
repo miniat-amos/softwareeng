@@ -39,8 +39,10 @@ BG_COLOR = (255, 63, 127)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+player_projectile_list:list[Projectile.Projectile] = []
+
 # Set up the player
-player = Player.Player("assets/sprites/entities/players/cowboy/")
+player = Player.Player("assets/sprites/entities/players/cowboy/", player_projectile_list)
 
 # Create UI
 ui = UI(player)

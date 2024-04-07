@@ -6,7 +6,7 @@ import Camera
 import math
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
-    def __init__(self, texture_folder:str, map = 0):
+    def __init__(self, texture_folder:str, player_projectile_list, map = 0):
         super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
@@ -14,6 +14,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
         self.build = 0
         self.tex_offset = (-3,-6)
         self.camera:Camera.Camera
+        self.projectile_list = player_projectile_list
 
     def set_camera(self, camera:Camera.Camera):
         self.camera = camera

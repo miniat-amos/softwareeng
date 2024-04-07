@@ -2,7 +2,7 @@ import pygame
 import math
 import Entity
 import Collision
-import Player
+import Renderable
 
 class Projectile(Entity.Entity):
     def __init__(self, texture, size, pos, health, speed, damage:int, angle:float):
@@ -15,10 +15,10 @@ class Projectile(Entity.Entity):
         self.starting_image:pygame.Surface = self.surface
         self.tex_offset = [-3,-6]
 
-    def update(self, player:Player.Player):
-        if player.get_rect().colliderect(self.get_rect()):
+    def update(self, target:Renderable.Renderable):
+        if target.get_rect().colliderect(self.get_rect()):
             if (self.currently_damaging == False):
-                player.lower_health(self.damage)
+                target.lower_health(self.damage)
                 self.currently_damaging = True
                 if (self.piercing == False):
                     self.kill()
