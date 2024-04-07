@@ -5,6 +5,7 @@ import SETTINGS
 import Camera
 import math
 import Projectile
+import StaticMusicManager
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def __init__(self, texture_folder:str, player_projectile_list, map = 0, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
@@ -102,6 +103,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
                                          (self.pos[0] + 3, self.pos[1] + 3),
                                          1, 1.5, 20, angle)
             self.projectile_list.append(newp)
+            StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav", 0.5)
             self.attack_cooldown = self.attack_cooldown_max
 
     def button_functions(self):
