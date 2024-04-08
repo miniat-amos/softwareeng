@@ -12,7 +12,9 @@ from MusicManager import MusicManager
 from ui import UI
 from Button import Button
 from Scoreboard import Scoreboard
-from Renderable import Renderable
+from Scoreboard import EnterScore
+from Scoreboard import Score
+from datetime import datetime
 
 FRAME_RATE = SETTINGS.FRAMERATE
 PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
@@ -150,7 +152,7 @@ def play():
             # To have some time before going to game over screen
             gameover_ticks += 1
             if gameover_ticks >= gameover_delay:
-                game_over()
+                game_over(player.points, datetime.now())
         
         # Not dying
         else:
@@ -248,6 +250,7 @@ def play():
 def options():
     # Insert our main branch options configurations once ready
     # Rendering
+    enter_score(15, datetime.now())
     back_button.setPos(280, 400)
     while True:
 
@@ -274,7 +277,7 @@ def quit():
     Scoreboard.export()
     exit()
 
-def scoreboard():
+def scoreboard(default_score:Score = False):
     margins = 50
     
     sb_size = (
@@ -290,6 +293,10 @@ def scoreboard():
         SETTINGS.WIDTH // 2 - back_button.rect.width // 2, 
         sb.bottom + margins
     )
+
+    if default_score:
+        sb.setDefaultIndex(default_score)
+        print("Set default score", sb.default_indices)
     
     while True:
         # Event handling
@@ -299,10 +306,10 @@ def scoreboard():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_KP_PLUS:
                     fs += 1
-                    sb.setFont(pygame.font.Font(None, fs))
+                    sb.font = pygame.font.Font(None, fs)
                 elif event.key == pygame.K_KP_MINUS:
                     fs -= 1
-                    sb.setFont(pygame.font.Font(None, fs))
+                    sb.font = pygame.font.Font(None, fs)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if back_button.is_clicked(event.pos):
                     music_manager.play_soundfx(menuclick, .5)
@@ -322,7 +329,7 @@ def scoreboard():
         back_button.draw(screen, pygame.mouse.get_pos())
 
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(SETTINGS.FRAMERATE)
 
 def main_menu():
 
@@ -369,7 +376,7 @@ def main_menu():
         pygame.display.flip()
         clock.tick(FRAME_RATE)
 
-def game_over():
+def game_over(score:int, date:datetime):
 
     # Called after the player fades away 
 
@@ -379,7 +386,7 @@ def game_over():
 
     # Setting alpha related variables
     gameover_alpha = 0
-    alpha_increase = .75
+    alpha_increase = .75 * 4
 
     # Setting up text surfaces
     textsurface_gameover = gameover_font.render("Game Over", True, RED)
@@ -417,7 +424,7 @@ def game_over():
 
         # Back to main menu upon fade out
         if gameover_alpha <= 0:
-            main_menu()
+            enter_score(score, date)
             
         # Drawing the text
         screen.blit(textsurface_gameover, gameover_font_rect)
@@ -432,5 +439,49 @@ def game_over():
     # Quit Pygame
     pygame.quit()
     sys.exit()
+
+
+def enter_score(score_n:int, date:datetime):
+    margins = 50
+    es = EnterScore((
+        SETTINGS.WIDTH - 2*margins,
+        120
+    ))
+    es.setScore(score_n)
+    es.setDate(date)
+
+    es.topleft = (margins, margins)
+    es.span = ((margins, margins), (margins + es.width, margins+es.row_height*2))
+    
+    while True:
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    es.checkClick(event.pos)
+            elif event.type == pygame.KEYDOWN:
+                if es.typing: 
+                    if event.key == pygame.K_BACKSPACE:
+                        es.backspace()
+                    elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                        if es.addScore():
+                            scoreboard(es.getScore())
+                        else:
+                            print("Score submission failed")
+                    else:
+                        es.keyInput(event.unicode)
+        
+        screen.fill(BLACK)
+        es.update()
+        
+        screen.blit(es.surface, es.topleft)
+
+        pygame.display.flip()
+        clock.tick(SETTINGS.FRAMERATE)
+
+    
+
 
 main_menu()

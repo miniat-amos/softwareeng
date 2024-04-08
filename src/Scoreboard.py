@@ -3,7 +3,7 @@ import SETTINGS
 import string
 import re
 from datetime import datetime
-from sortedcontainers import SortedList
+from sortedcontainers import SortedKeyList
 import pygame
 from pygame import Surface
 from pygame import Rect
@@ -35,6 +35,7 @@ SCROLL_AMOUNT = 12
 
 def tobounds(n, mini, maxi): return max(mini, min(maxi, n))
 
+class Scoreboard(): pass
 
 class Score():
 
@@ -134,96 +135,8 @@ def getNewFilePath(desired_fp:str):
 		dp = desired_fp.rfind('.')
 		desired_fp = desired_fp[:dp] + '.' + desired_fp[dp:]
 	return desired_fp
-
-
-class UsernameTextBox(Renderable):
-	def __init__(self, font:pygame.font.Font = -1, v_padding = 8, h_padding = 12):
-		super().__init__()
-		self.v_padding = v_padding
-		self.h_padding = h_padding
-		self.typing = False
-		self.need_redraw_text = True
-		self.text = "___"
-
-		self.font = font
-
-	def update(self):
-		if self.need_redraw_text:
-			self.redrawText()
-		
-		self.need_redraw_text = False
-
-	# Takes in the cursor position of a click and checks if the box was clicked
-	def checkClick(self, click_pos:tuple[int,int]):
-		if self.get_rect().collidepoint(click_pos):
-			self.typing = True
-		else:
-			self.typing = False
-
-
-	@property
-	def font(self): return self.__font
-	@font.setter
-	def font(self, set:pygame.font.Font):
-		if set != -1:
-			self.__font:pygame.font.Font = set
-		else:
-			self.__font:pygame.font.Font = pygame.font.Font(None, 24)
-		self.calcDimensions()
-
-	# Takes in a string of key inputs and tries to type them
-	def keyInput(self, input:str):
-		for char in input:
-			try:
-				i = self.text.index('_')
-				if char.isalpha():
-					self.text = self.text[:i] + char.upper() + self.text[i+1:]
-			except:
-				return # No "empty" spaces (underscores)
-		self.need_redraw_text = True
-
-	def backspace(self):
-		try:
-			i = self.text.index('_')
-			if i > 0:
-				self.text = self.text[:i-1] + '_' + self.text[i:]
-			else:
-				return
-		except:
-			self.text = self.text[:2] + '_'
-		self.need_redraw_text = True
-
-	# Redraw the text box
-	def redrawText(self):
-		self.surface.fill((0,0,0))
-		Scoreboard.drawBorders(self.surface)
-		self.surface.blit(self.font.render(self.text, True, SETTINGS.HD_TEXT_COLOR), (self.h_padding, self.v_padding))
-		pass
 	
-	# Recalculate dimensions of the text box (size is automatically set based on font)
-	def calcDimensions(self):
-		text_size = self.font.size('OOO')
-		self.size = (
-			text_size[0] + self.h_padding * 2,
-			text_size[1] + self.v_padding * 2
-		)
-		self.surface = Surface(self.size, pygame.SRCALPHA)
-
-	# Returns True when user has entered a valid username (meaning text box no longet need)
-	def addScore(self, score_n:int, date:datetime) -> bool:
-		score_sb = Score()
-		if not score_sb.setUsername(self.text):
-			print("Username must be exactly 3 alphabetical characters")
-			return False
-		
-		if not score_sb.setScore(score_n):
-			print("Internal error: Invalid score (", score_n, ")")
-		if not score_sb.setDate(date):
-			print("Internal error: Invalid datetime (", date, ")")
-
-		Scoreboard.insertScore(score_sb)
-
-
+	
 
 # Scoreboard class
 #	Static Elements
@@ -247,7 +160,6 @@ class Scoreboard(Renderable):
 		
 		self.col_padding = col_padding
 		self.row_padding = row_padding
-		self.index = 0
 		self.scroll_pos = [0,0]
 
 		self.need_redraw_window = True
@@ -256,13 +168,32 @@ class Scoreboard(Renderable):
 		self.old_scroll = [-1,-1]
 		self.old_index = -1
 
+		self.index = 0
 		self.active_score_list = Scoreboard.scores_by_score
 		self.reverse_order = False
+		self.default_indices = ((0,0,0), (0,0,0)) # For sort by score, user, and date. Same in reverse order too.
 		
 		self.size = size
 		self.font = font
 	
-	
+
+	def setDefaultIndex(self, score:Score):
+		cnt = Scoreboard.getCnt()
+		max_index = cnt-(self.contents.get_height()/self.row_height)
+		default_forward = (
+			int(max(0, min(Scoreboard.scores_by_score.index(score), max_index))),
+			int(max(0, min(Scoreboard.scores_by_user.index(score), max_index))),
+			int(max(0, min(Scoreboard.scores_by_date.index(score), max_index)))
+		)
+		default_reverse = (
+			int(max(0, min(cnt-1-default_forward[0], max_index))),
+			int(max(0, min(cnt-1-default_forward[1], max_index))),
+			int(max(0, min(cnt-1-default_forward[2], max_index)))
+		)
+
+		self.default_indices = (default_forward, default_reverse)
+
+
 	def update(self):
 		### SCROLL ADJUSTMENTS ###
 
@@ -352,16 +283,28 @@ class Scoreboard(Renderable):
 					self.reverse_order = not self.reverse_order
 				else:
 					self.active_score_list = Scoreboard.scores_by_score
+				if self.reverse_order:
+					self.index = self.default_indices[1][0]
+				else:
+					self.index = self.default_indices[0][0]
 			elif x < self.div2_x: # Clicked on username
 				if self.active_score_list == Scoreboard.scores_by_user:
 					self.reverse_order = not self.reverse_order
 				else:
 					self.active_score_list = Scoreboard.scores_by_user
-			else:
+				if self.reverse_order:
+					self.index = self.default_indices[1][1]
+				else:
+					self.index = self.default_indices[0][1]
+			else: # Clicked on date
 				if self.active_score_list == Scoreboard.scores_by_date:
 					self.reverse_order = not self.reverse_order
 				else:
 					self.active_score_list = Scoreboard.scores_by_date
+				if self.reverse_order:
+					self.index = self.default_indices[1][2]
+				else:
+					self.index = self.default_indices[0][2]
 
 
 	# Scrolls the contents pane. Validation of scroll is checked in update()
@@ -557,9 +500,9 @@ class Scoreboard(Renderable):
 
 	### BEGIN STATIC COMPONENTS ###
 
-	scores_by_score:SortedList = SortedList(key=sortScore)
-	scores_by_date:SortedList = SortedList(key=sortDate)
-	scores_by_user:SortedList = SortedList(key=sortUser)
+	scores_by_score:SortedKeyList = SortedKeyList(key=sortScore)
+	scores_by_date:SortedKeyList = SortedKeyList(key=sortDate)
+	scores_by_user:SortedKeyList = SortedKeyList(key=sortUser)
 	scores_loaded:bool = False
 	
 	def loadScores():
@@ -659,3 +602,116 @@ class Scoreboard(Renderable):
 		for score in Scoreboard.scores_by_score:
 			s += score.fullDetailStr() + '\n'
 		return s
+
+
+
+class EnterScore(Scoreboard):
+	def __init__(self, size:tuple[int,int], font = -1, row_padding = 8, col_padding = 12) -> None:
+		super().__init__(size, font, row_padding, col_padding)
+		self.text = "___"
+		self.typing = True
+		self.score_added = False
+
+	def setScore(self, score:int): self.score = score
+	def setDate(self, date:datetime): self.date = date
+
+	# Returns True when a score has been submitted
+	def addScore(self) -> bool:
+		if self.score_added: 
+			print("Already submitted a score")
+			return True
+		
+		score_sb = Score()
+		if not score_sb.setUsername(self.text):
+			print("Username must be exactly 3 alphabetical characters")
+			return False
+		
+		if not score_sb.setScore(self.score):
+			print("Internal error: Invalid score (", self.score, ")")
+		if not score_sb.setDate(self.date):
+			print("Internal error: Invalid datetime (", self.date, ")")
+
+		if score_sb.valid:
+			Scoreboard.insertScore(score_sb)
+			self.score_added = True
+			self.score_sb = score_sb
+			return True
+		
+	def getScore(self) -> Score: 
+		if self.score_added: return self.score_sb
+		else: return False
+
+
+	def update(self):
+		if self.need_full_redraw:
+			self.surface = pygame.Surface(self.size, pygame.SRCALPHA)
+			self.redrawHeader()
+			self.need_redraw_contents = True
+		
+		if self.need_redraw_contents:
+			self.redrawContents()
+			self.need_redraw_window = True
+
+		if self.need_redraw_window:
+			self.redrawWindow()
+		
+		self.need_full_redraw = False
+		self.need_redraw_contents = False
+		self.need_redraw_window = False
+	
+	
+	# Takes in the cursor position of a click and checks if the box was clicked
+	def checkClick(self, click_pos:tuple[int,int]):
+		if self.get_rect().collidepoint(click_pos):
+			self.typing = True
+		else:
+			self.typing = False
+
+	# Takes in a string of key inputs and tries to type them
+	def keyInput(self, input:str):
+		for char in input:
+			try:
+				i = self.text.index('_')
+				if char.isalpha():
+					self.text = self.text[:i] + char.upper() + self.text[i+1:]
+			except:
+				return # No "empty" spaces (underscores)
+		self.need_redraw_contents = True
+
+	def backspace(self):
+		try:
+			i = self.text.index('_')
+			if i > 0:
+				self.text = self.text[:i-1] + '_' + self.text[i:]
+			else:
+				return
+		except:
+			self.text = self.text[:2] + '_'
+		self.need_redraw_contents = True
+	
+	
+	def scroll(self, mouse_pos:tuple[int,int], down:bool):
+		if not self.get_rect().collidepoint(mouse_pos): return
+
+		if down:
+			self.scroll_pos[0] += SCROLL_AMOUNT
+		else:
+			self.scroll_pos[0] -= SCROLL_AMOUNT
+
+
+	def calcDimensions(self):
+		super().calcDimensions()
+		self.contents = self.header.copy()
+
+	def redrawContents(self):
+		self.contents.fill(SETTINGS.CT_BACKGROUND_COLOR)
+
+		# Draw border lines
+		Scoreboard.drawBorders(self.contents, SETTINGS.CT_BORDER_COLOR)
+		# Draw column divider lines
+		Scoreboard.drawColDivides(self.contents, [self.div1_x, self.div2_x], SETTINGS.CT_BORDER_COLOR)
+
+		# Draw header
+		self.contents.blit(self.font.render(str(self.score), True, SETTINGS.HD_TEXT_COLOR), (self.score_x, self.row_padding))
+		self.contents.blit(self.font.render(self.text, True, SETTINGS.HD_TEXT_COLOR), (self.user_x, self.row_padding))
+		self.contents.blit(self.font.render(self.date.strftime(DT_FORMAT), True, SETTINGS.HD_TEXT_COLOR), (self.date_x, self.row_padding))
