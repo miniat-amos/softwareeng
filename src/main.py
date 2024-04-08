@@ -344,7 +344,7 @@ def game_over():
     directions_font_rect = textsurface_gameover.get_rect(center=(screen_width/2, screen_height/1.5))
 
     # Play the game over music
-    music_manager.play_song(music_gameover, False, .5)
+    music_manager.play_song(music_gameover, True, .5)
     running = True
 
     # Game loop
