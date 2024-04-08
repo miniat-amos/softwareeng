@@ -53,6 +53,7 @@ menuclick = 'assets/sounds/menuselect.mp3'
 testsound = 'assets/sounds/testsound.mp3'
 music_gameover = 'assets/music/GameOver.mp3'
 sound_fadeaway = 'assets/sounds/fadeaway.mp3'
+temp_master_volume:int  #used to store master volume while it is muted in game over
 
 # Button setup
 menu_button_font = pygame.font.Font(None, 48)
@@ -152,7 +153,9 @@ def play():
         # Check for game over
         if player.health <= 0 and not dying:
             music_manager.play_soundfx(sound_fadeaway)
-            music_manager.change_mastervol(0)
+            global temp_master_volume
+            temp_master_volume = music_manager.master_volume
+            music_manager.set_mastervol(0)
             dying = True
 
         if dying:
@@ -462,6 +465,7 @@ def game_over(score:int, date:datetime):
     directions_font_rect = textsurface_gameover.get_rect(center=(screen_width/2, screen_height/1.5))
 
     # Play the game over music
+    music_manager.set_mastervol(temp_master_volume)
     music_manager.play_song(music_gameover, False)
     running = True
 

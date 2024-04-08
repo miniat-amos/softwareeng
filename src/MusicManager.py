@@ -39,6 +39,11 @@ class MusicManager:
         self.master_volume += change
         self.master_volume = max(0, min(self.master_volume, 1))
         pygame.mixer.music.set_volume(self.master_volume * self.music_volume)
+    
+    def set_mastervol(self, change):
+        self.master_volume = change
+        self.master_volume = max(0, min(self.master_volume, 1))
+        pygame.mixer.music.set_volume(self.master_volume * self.music_volume)
 
     def change_musicvol(self, change):
         self.music_volume += change
