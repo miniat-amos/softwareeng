@@ -8,8 +8,8 @@ COIN_PICKUP_SOUND = "assets/sounds/loot/item_pickup.wav"
 
 
 # Might not get used in the final version, I just wanted to be able to hear my music when testing lmao
-VOL_SFX = .1
-VOL_MUSIC = .1
+VOL_SFX = 0.1
+VOL_MUSIC = 0.1
 
 
 # World gen settings
@@ -38,3 +38,17 @@ LIGHTNING_INERTIA_RANGE_MAX = 0.2
 LOOT_SIZE_SMALL = (8,8)
 LOOT_SIZE_MEDIUM = (16,16)
 LOOT_SIZE_LARGE = (10,10)
+
+
+# Scoreboard settings
+SB_BACKGROUND_COLOR = (0,0,0,127)
+HD_BACKGROUND_COLOR = (255,64,0,48)
+CT_BACKGROUND_COLOR = (0,192,255,40)
+
+SB_BORDER_COLOR = (255,255,255,255)
+HD_BORDER_COLOR = (255,128,0,255)
+CT_BORDER_COLOR = (0,192,255,255)
+
+SB_TEXT_COLOR = (255,255,255)
+HD_TEXT_COLOR = SB_TEXT_COLOR
+CT_TEXT_COLOR = SB_TEXT_COLOR
