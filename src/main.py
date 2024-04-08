@@ -162,9 +162,11 @@ def play():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-            screen.fill(BLACK)
+            diescreen = pygame.Surface((SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT))
+            diescreen.fill(BLACK)
             render_group.appendTo(player, 3)
-            render_group.render(screen, camera)
+            render_group.render(diescreen, camera)
+            pygame.transform.scale(diescreen, (screen_width, screen_height), screen)
 
             # Fading the player via an opacity rect
             fadescreen = pygame.Surface((screen_width, screen_height))  # the size of your rect
