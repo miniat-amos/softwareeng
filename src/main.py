@@ -59,7 +59,7 @@ menuclick = 'assets/sounds/menuselect.mp3'
 testsound = 'assets/sounds/testsound.mp3'
 music_gameover = 'assets/music/GameOver.mp3'
 sound_fadeaway = 'assets/sounds/fadeaway.mp3'
-temp_master_volume:int  #used to store master volume while it is muted in game over
+temp_master_volume:float  #used to store master volume while it is muted in game over
 
 # Button setup
 menu_button_font = pygame.font.Font(None, 48)
