@@ -13,14 +13,14 @@ from ui import UI
 from Button import Button
 import Enemies
 import Projectile
-import StaticMusicManager
+#import StaticMusicManager
 import Loot
 from Scoreboard import Scoreboard
 from Scoreboard import EnterScore
 from Scoreboard import Score
 from datetime import datetime
 
-import MusicManager #TEMP DELETE AFTER FIXING STATIC
+from MusicManager import MusicManager #TEMP DELETE AFTER FIXING STATIC
 
 FRAME_RATE = SETTINGS.FRAMERATE
 PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
@@ -51,7 +51,7 @@ RED = (245, 18, 2)
 clock = pygame.time.Clock()
 
 # Set up the music manager
-music_manager = MusicManager.MusicManager()
+#music_manager = MusicManager.MusicManager()
 # Songs
 maingame = 'assets/music/Maingame.mp3'
 menu = 'assets/music/Menu.mp3'
@@ -118,7 +118,7 @@ def play():
     # Set up the camera
     camera = Camera(player, SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT)
 
-    music_manager.play_song(maingame, True)
+    MusicManager.play_song(maingame, True)
 
     render_group = Rendergroup()
 
@@ -159,21 +159,21 @@ def play():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            music_manager.master_volume_game_change(event)
+            MusicManager.master_volume_game_change(event)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_p:
-                    music_manager.play_soundfx(testsound)
+                    MusicManager.play_soundfx(testsound)
                 if event.key == pygame.K_o:
-                    music_manager.play_song(menu, True)
+                    MusicManager.play_song(menu, True)
                 if event.key == pygame.K_i:
-                    music_manager.play_song(maingame, True)
+                    MusicManager.play_song(maingame, True)
 
         # Check for game over
         if player.health <= 0 and not dying:
-            music_manager.play_soundfx(sound_fadeaway)
+            MusicManager.play_soundfx(sound_fadeaway)
             global temp_master_volume
-            temp_master_volume = music_manager.master_volume
-            music_manager.set_mastervol(0)
+            temp_master_volume = MusicManager.master_volume
+            MusicManager.set_mastervol(0)
             dying = True
 
         if dying:
@@ -209,14 +209,14 @@ def play():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                music_manager.master_volume_game_change(event)
+                MusicManager.master_volume_game_change(event)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_p:
-                        music_manager.play_soundfx(testsound, 1)
+                        MusicManager.play_soundfx(testsound, 1)
                     if event.key == pygame.K_o:
-                        music_manager.play_song(menu, True, 0.5)
+                        MusicManager.play_song(menu, True, 0.5)
                     if event.key == pygame.K_i:
-                        music_manager.play_song(maingame, True, 0.5)
+                        MusicManager.play_song(maingame, True, 0.5)
 
             if (pygame.key.get_pressed()[pygame.K_l]):
                 if (l_pressed == False):
@@ -427,26 +427,26 @@ def options():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Cycle through the buttons that can be clicked -> perform their action
                 if back_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.play_soundfx(menuclick)
                     main_menu()
                 elif mastervol_increase.is_clicked(mouse_pos):
-                    music_manager.change_mastervol(0.1)
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.change_mastervol(0.1)
+                    MusicManager.play_soundfx(menuclick)
                 elif mastervol_decrease.is_clicked(mouse_pos):
-                    music_manager.change_mastervol(-0.1)
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.change_mastervol(-0.1)
+                    MusicManager.play_soundfx(menuclick)
                 elif musicvol_increase.is_clicked(mouse_pos):
-                    music_manager.change_musicvol(0.1)
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.change_musicvol(0.1)
+                    MusicManager.play_soundfx(menuclick)
                 elif musicvol_decrease.is_clicked(mouse_pos):
-                    music_manager.change_musicvol(-0.1)
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.change_musicvol(-0.1)
+                    MusicManager.play_soundfx(menuclick)
                 elif soundfxvol_increase.is_clicked(mouse_pos):
-                    music_manager.change_soundfxvol(0.1)
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.change_soundfxvol(0.1)
+                    MusicManager.play_soundfx(menuclick)
                 elif soundfxvol_decrease.is_clicked(mouse_pos):
-                    music_manager.change_soundfxvol(-0.1)
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.change_soundfxvol(-0.1)
+                    MusicManager.play_soundfx(menuclick)
 
         clock.tick(60)
 
@@ -490,7 +490,7 @@ def scoreboard(default_score:Score = False):
                     sb.font = pygame.font.Font(None, fs)
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if back_button.is_clicked(event.pos):
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.play_soundfx(menuclick)
                     main_menu()
                 if event.button == 4:  # Scroll up
                     sb.scrollUp(event.pos)
@@ -511,7 +511,7 @@ def scoreboard(default_score:Score = False):
 
 def main_menu():
 
-    music_manager.play_song(menu, True)
+    MusicManager.play_song(menu, True)
 
     # Game loop
     while True:
@@ -538,16 +538,16 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Cycle through the buttons that can be clicked -> perform their action
                 if play_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.play_soundfx(menuclick)
                     play()
                 if options_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.play_soundfx(menuclick)
                     options()
                 if quit_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.play_soundfx(menuclick)
                     quit()
                 if scoreboard_button.is_clicked(mouse_pos):
-                    music_manager.play_soundfx(menuclick)
+                    MusicManager.play_soundfx(menuclick)
                     scoreboard()
                 
 
@@ -579,8 +579,8 @@ def game_over(score:int, date:datetime):
     directions_font_rect = textsurface_gameover.get_rect(center=(screen_width/2, screen_height/1.5))
 
     # Play the game over music
-    music_manager.set_mastervol(temp_master_volume)
-    music_manager.play_song(music_gameover, False)
+    MusicManager.set_mastervol(temp_master_volume)
+    MusicManager.play_song(music_gameover, False)
     running = True
 
     # Game loop
