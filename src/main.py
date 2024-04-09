@@ -38,7 +38,7 @@ ui_font = pygame.font.Font(None, 24)
 # Set up the screen
 screen_width, screen_height = 800, 720
 screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("WASD to move, press 1 to spawn object at player pos")
+pygame.display.set_caption("Lightning Bolt Town")
 
 # Set up colors
 BG_COLOR = (255, 63, 127)
