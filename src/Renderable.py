@@ -69,17 +69,22 @@ class Renderable():
 	@property
 	def posi(self): return self.__rect.center
 	@posi.setter
-	def posi(self, set:tuple[int,int]): self.pos(set)
+	def posi(self, set:tuple[int,int]):
+		self.xi, self.yi = round(set[0]), round(set[1])
 			
 	@property
 	def xi(self): return self.__rect.centerx
 	@xi.setter
-	def xi(self, set:tuple[int,int]): self.pos(set)
+	def xi(self, set:int):
+		self.__x = round(set)
+		self.__rect.centerx = round(set)
 			
 	@property
 	def yi(self): return self.__rect.centery
 	@yi.setter
-	def yi(self, set:tuple[int,int]): self.pos(set)
+	def yi(self, set:int):
+		self.__y = round(set)
+		self.__rect.centery = round(set)
 	
 	@property
 	def size(self): return self.__rect.size

@@ -69,7 +69,7 @@ class MeleeEnemy(Enemy):
         dx = player_pos[0] - self.get_rect().centerx
         dy = player_pos[1] - self.get_rect().centery
         distance = math.sqrt(dx * dx + dy * dy)
-        if distance < 0.01: return
+        if distance < 0.01: return # Prevent division by zero errors
         inertia:float = random.uniform(SETTINGS.INERTIA_RANGE_MIN, SETTINGS.INERTIA_RANGE_MAX)
         x_move = dx/distance * self.speed
         x_move = (x_move * inertia + self.last_move[0]*(1-inertia))#/2
