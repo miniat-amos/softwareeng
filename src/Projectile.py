@@ -11,19 +11,14 @@ class Projectile(Entity.Entity):
         super().__init__(texture, size, pos, health, speed)
         self.angle:float = angle
         self.piercing = True
-        self.currently_damaging = False
         self.starting_image:pygame.Surface = self.surface
         self.tex_offset = [-3,-6]
 
     def damage_check(self, target:Renderable.Renderable):
         if target.get_rect().colliderect(self.get_rect()):
-            if (self.currently_damaging == False):
-                target.lower_health(self.damage)
-                self.currently_damaging = True
-                if (self.piercing == False):
-                    self.kill()
-        else:
-            self.currently_damaging = False
+            target.damage(self.damage)
+            if (self.piercing == False):
+                self.kill()
 
     def update(self):
         if (self.alive):

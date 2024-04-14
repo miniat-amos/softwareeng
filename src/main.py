@@ -235,14 +235,14 @@ def play():
 
             if (pygame.key.get_pressed()[pygame.K_k]):
                 if (k_pressed == False):
-                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20)#, 1)
+                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 20)
                     enemy_list.append(newe)
                 k_pressed = True
             else:
                 k_pressed = False
             if (pygame.key.get_pressed()[pygame.K_LEFTBRACKET]):
                 if (left_bracket_pressed == False):
-                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, enemy_projectile_list)
+                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT), 20, enemy_projectile_list)
                     enemy_list.append(newe)
                 left_bracket_pressed = True
             else:
@@ -283,7 +283,7 @@ def play():
             # Spawn new enemies
             if (current_frame == math.floor(FRAME_RATE/2)):	
                 # once per second:
-                newr = random.randrange(0,5,1)		# 1/6 random chance to
+                newr = random.randrange(0,3,1)		# 1/4 random chance to
                 if (newr == 0):						# spawn new enemy
                     enemy_type = random.randrange(1,100,1)
                     newe:Enemies.Enemy
@@ -295,9 +295,9 @@ def play():
                         #else:
                         #    e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                         if (enemy_type <= 50):
-                            newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 30, 20)#, 1)
+                            newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 20)#, 1)
                         elif (enemy_type <= 85):
-                            newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 20, 20, enemy_projectile_list)
+                            newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 20, enemy_projectile_list)
                         else:
                             newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
                         if isinstance(newe, Enemies.SummonerEnemy):
@@ -330,7 +330,7 @@ def play():
 
             for e in enemy_list:
                 e.update(player)
-                if (e.alive):
+                if (e.should_render):
                     if isinstance(e, Enemies.SummonerEnemy):
                         render_group.appendSky(e)
                     else:

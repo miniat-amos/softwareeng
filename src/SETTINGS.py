@@ -34,6 +34,11 @@ MELEE_ENEMY_ATTACK_SOUND = "assets/sounds/entities/enemies/melee/melee_attack_hi
 INERTIA_RANGE_MIN = 0.01
 INERTIA_RANGE_MAX = 0.05
 
+MELEE_ENEMY_HEALTH = 30
+RANGED_ENEMY_HEALTH = 30
+
+SILENCE_SOUND = "assets/sounds/entities/enemies/default/silence_1sec.wav"
+
 LIGHTNING_INERTIA_RANGE_MIN = 0.1
 LIGHTNING_INERTIA_RANGE_MAX = 0.2
 

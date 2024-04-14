@@ -4,6 +4,7 @@ import Renderable
 import math
 import Collision
 from Collision import StaticCollidable
+from MusicManager import MusicManager
 
 class Entity(Renderable.Renderable):
     def __init__(self, texture, size, pos, health, speed:float, iframes:int = SETTINGS.FRAMERATE):
@@ -13,13 +14,19 @@ class Entity(Renderable.Renderable):
         self.health:int = health
         self.max_health = health
         self.alive = True
+        self.should_render = True
         self._x:float = pos[0]
         self._y:float = pos[1]
         self.iframes:int = 0
         self.iframes_max:int = iframes
+        self.damage_sound:str = SETTINGS.SILENCE_SOUND
+        self.death_sound:str = SETTINGS.SILENCE_SOUND
+        self.dead_ticks = 0
 
     def update(self):
         self.iframes = max(0, self.iframes-1)
+        if (self.alive == False):
+            self.dying()
 
     def lower_health(self, value:int):
         self.health -= value
@@ -33,7 +40,10 @@ class Entity(Renderable.Renderable):
             self.health = max(0,self.health)
             if (self.health == 0):
                 self.alive = False
-            self.iframes = self.iframes_max
+                MusicManager.play_soundfx(self.death_sound)
+            else:
+                self.iframes = self.iframes_max
+                MusicManager.play_soundfx(self.damage_sound)
 
     def increase_health(self, value:int):
         self.health += value
@@ -71,6 +81,13 @@ class Entity(Renderable.Renderable):
         ini_pos = (self.x, self.y)
         self.raw_move(move)
         return (self.x-ini_pos[0], self.y-ini_pos[1])
+    
+    def dying(self):
+        self.dead_ticks += 1
+        self.surface.set_alpha(255-(self.dead_ticks/SETTINGS.FRAMERATE)*255)
+        if (self.dead_ticks == SETTINGS.FRAMERATE):
+            self.should_render = False
+
 
 
 

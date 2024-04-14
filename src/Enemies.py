@@ -63,15 +63,17 @@ class Enemy(Entity.GroundEntity):
         super().update()
 
 class MeleeEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN):
+    def __init__(self, folder:str, map, size, pos, attack_damage:int,  health:int = SETTINGS.MELEE_ENEMY_HEALTH, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN):
         super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.last_move:tuple[float,float] = [0,0]
+        self.damage_sound = "assets/sounds/entities/enemies/melee/damage.wav"
+        self.death_sound = "assets/sounds/entities/enemies/melee/death.mp3"
 
     def update(self, player:Player.Player):
         if (self.alive):
             self.melee_attack(player)
             self.move(player.pos)
-            super().update()
+        super().update()
         
     def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
         dx = player_pos[0] - self.get_rect().centerx
@@ -90,15 +92,17 @@ class MeleeEnemy(Enemy):
         self.normalizeMove(checked_move)
 
 class RangedEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, enemy_projectile_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_RANGED_COOLDOWN):
+    def __init__(self, folder:str, map, size, pos, attack_damage:int, enemy_projectile_list, health:int = SETTINGS.RANGED_ENEMY_HEALTH, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_RANGED_COOLDOWN):
         super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.enemy_projectile_list = enemy_projectile_list
+        self.damage_sound = "assets/sounds/entities/enemies/ranger/damage.mp3"
+        self.death_sound = "assets/sounds/entities/enemies/ranger/death.mp3"
 
     def update(self, player:Player.Player):
         if (self.alive and (abs(player.yi-self.yi) < SETTINGS.WR_HEIGHT)):
             self.ranged_attack(player)
             self.turn(player)
-            super().update()
+        super().update()
 
     def turn(self, player:Player.Player):
         xch = player.xi - self.xi
@@ -122,6 +126,8 @@ class SummonerEnemy(Enemy):
         MusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.wav", 0.75)
         self.angle:float = math.radians(random.randrange(0,359, 1))
         self.starting_pos = pos
+        self.damage_sound = "assets/sounds/entities/enemies/summoner/damage.mp3"
+        self.death_sound = "assets/sounds/entities/enemies/summoner/death.mp3"
 
     def update(self, player:Player.Player):
         if (self.alive):
@@ -129,7 +135,7 @@ class SummonerEnemy(Enemy):
             if (abs(player.yi-self.yi) < (SETTINGS.WR_HEIGHT)):
                 self.summoner_attack(player)
             self.move()
-            super().update()
+        super().update()
 
     def move(self):
         self.x = (SETTINGS.ENEMY_SUMMONER_CIRCLE_RADIUS*math.cos(self.angle) + self.starting_pos[0])
