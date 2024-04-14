@@ -83,7 +83,7 @@ class GroundEntity(Entity):
         self.texture_folder = texture_folder
         self.map:StaticCollidable = map
         self.direction_y = "down"
-    
+
     def update(self):
         super().update()
     

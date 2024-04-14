@@ -3,11 +3,12 @@ import math
 import pygame
 import Player
 import SETTINGS
-import StaticMusicManager
+#import StaticMusicManager
 import Projectile
 import math
 import Lightning
 import random
+from MusicManager import MusicManager
 
 class Enemy(Entity.GroundEntity):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float, attack_cooldown:int):
@@ -25,7 +26,7 @@ class Enemy(Entity.GroundEntity):
         if (self.attack_cooldown == 0):
             if (self.get_rect().colliderect(player.get_rect())) and player.alive:
                 player.damage(self.attack_damage)
-                StaticMusicManager.play_soundfx(SETTINGS.MELEE_ENEMY_ATTACK_SOUND)
+                MusicManager.play_soundfx(SETTINGS.MELEE_ENEMY_ATTACK_SOUND, 1.5)
                 self.attack_cooldown = self.attack_cooldown_max
 
     def ranged_attack(self, player:Player.Player):
@@ -45,7 +46,7 @@ class Enemy(Entity.GroundEntity):
                 newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 20,
                                              angle)
                 self.enemy_projectile_list.append(newp)
-                StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav", 0.5)
+                MusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav")
                 self.attack_cooldown = self.attack_cooldown_max
 
     def summoner_attack(self, player:Player.Player):
@@ -76,7 +77,7 @@ class MeleeEnemy(Enemy):
         dx = player_pos[0] - self.get_rect().centerx
         dy = player_pos[1] - self.get_rect().centery
         distance = math.sqrt(dx * dx + dy * dy)
-        if distance < 0.01: return
+        if distance < 0.01: return # Prevent division by zero errors
         inertia:float = random.uniform(SETTINGS.INERTIA_RANGE_MIN, SETTINGS.INERTIA_RANGE_MAX)
         x_move = dx/distance * self.speed
         x_move = (x_move * inertia + self.last_move[0]*(1-inertia))#/2
@@ -118,7 +119,7 @@ class SummonerEnemy(Enemy):
     def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, lightning_bolt_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_SUMMONER_COOLDOWN):
         super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.lightning_bolt_list = lightning_bolt_list
-        StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.wav", 0.25)
+        MusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.wav", 0.75)
         self.angle:float = math.radians(random.randrange(0,359, 1))
         self.starting_pos = pos
 

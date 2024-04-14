@@ -5,7 +5,7 @@ import SETTINGS
 import Camera
 import math
 import Projectile
-import StaticMusicManager
+from MusicManager import MusicManager
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def __init__(self, texture_folder:str, player_projectile_list, map = 0, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
@@ -81,7 +81,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             # If Y-movement is greater, adjust Y-movement only
             else:
                 self.x += undoAxis(checked_move[0], checked_move[1], self.speed)
-    
+
     def ranged_attack(self):
         if (pygame.mouse.get_pressed()[0] and self.attack_cooldown == 0):
             print(pygame.mouse.get_pos()[0] + self.camera.render_area.left, 
@@ -103,7 +103,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
                                          (self.pos[0] + 3, self.pos[1] + 3),
                                          1, 1.5, 20, angle)
             self.projectile_list.append(newp)
-            StaticMusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav", 0.5)
+            MusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav", 0.5)
             self.attack_cooldown = self.attack_cooldown_max
 
     def button_functions(self):

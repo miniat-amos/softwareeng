@@ -12,8 +12,9 @@ import random
 from Player import Player
 import Loot
 import SETTINGS
-import StaticMusicManager
+#import StaticMusicManager
 import Collision
+from MusicManager import MusicManager
 
 #	Lower indecies for a tile or room list will always mean "earlier" components.
 # I.e. if the player is moving forward, they will enter room[0], then room[1], etc.
@@ -173,7 +174,7 @@ class Map(StaticCollidable):
 			room = self.__room_list[i]
 			for l in room.loot_list:
 				if player.get_rect().colliderect(l.get_rect()):
-					StaticMusicManager.play_soundfx(SETTINGS.COIN_PICKUP_SOUND)
+					MusicManager.play_soundfx(SETTINGS.COIN_PICKUP_SOUND)
 					player.add_points(l.value)
 					room.loot_list.remove(l)
 			

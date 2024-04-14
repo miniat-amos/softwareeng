@@ -2,7 +2,8 @@ import pygame
 import Renderable
 import Collision
 import Player
-import StaticMusicManager
+#import StaticMusicManager
+from MusicManager import MusicManager
 
 import SETTINGS
 
@@ -24,8 +25,8 @@ class Loot(Renderable.Renderable):
         super().__init__(self.filepath, size, pos)
 
     def update(self, player:Player.Player) -> bool:
-        if (self.rect.colliderect(player.rect)):
+        if (self.get_rect().colliderect(player.get_rect())):
             player.add_points(self.value)
-            StaticMusicManager.play_soundfx("assets/sounds/loot/item_pickup.wav")
+            MusicManager.play_soundfx("assets/sounds/loot/item_pickup.wav")
             return True
         else: return False
