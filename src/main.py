@@ -322,7 +322,7 @@ def play():
             # Update lighting bolts and add them to the render group
             for l in lightning_bolt_list:
                 l.update(player)
-                if (l.alive):
+                if (l.should_render):
                     render_group.appendSky(l)
                 else:
                     lightning_bolt_list.remove(l)

@@ -128,6 +128,7 @@ class SummonerEnemy(Enemy):
         self.starting_pos = pos
         self.damage_sound = "assets/sounds/entities/enemies/summoner/damage.mp3"
         self.death_sound = "assets/sounds/entities/enemies/summoner/death.mp3"
+        self.attack_cooldown = self.attack_cooldown_max
 
     def update(self, player:Player.Player):
         if (self.alive):

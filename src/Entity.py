@@ -42,8 +42,8 @@ class Entity(Renderable.Renderable):
                 self.alive = False
                 MusicManager.play_soundfx(self.death_sound)
             else:
-                self.iframes = self.iframes_max
                 MusicManager.play_soundfx(self.damage_sound)
+            self.iframes = self.iframes_max
 
     def increase_health(self, value:int):
         self.health += value
@@ -84,7 +84,7 @@ class Entity(Renderable.Renderable):
     
     def dying(self):
         self.dead_ticks += 1
-        self.surface.set_alpha(255-(self.dead_ticks/SETTINGS.FRAMERATE)*255)
+        self.surface.set_alpha(255-(((self.dead_ticks)/SETTINGS.FRAMERATE)*255))
         if (self.dead_ticks == SETTINGS.FRAMERATE):
             self.should_render = False
 
