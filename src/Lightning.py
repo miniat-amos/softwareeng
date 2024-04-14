@@ -1,10 +1,15 @@
 import pygame
+import SETTINGS
 import Entity
 import math
 import Collision
 import Building
 import Map
 import SETTINGS
+#import StaticMusicManager
+import Player
+import random
+from MusicManager import MusicManager
 
 MAP = None
 
@@ -16,11 +21,12 @@ class Lightning(Entity.Entity):
     #MAP = None
 
     def __init__(self, folder:str, pos:tuple[int,int], time):
-        self.size = (100,100)
-        super().__init__(   folder+"target.png",    (100,100),  pos,        100,    3)
+        super().__init__(   folder+"target.png",    (8,8),  pos,        100,    0.8)
         #                   ^ img file              ^ size      ^start pos  ^health ^speed
+        self.surface.set_alpha(196)
         self.folder = folder
         self.time = time
+        self.last_move:tuple[float,float] = [0,0]
 
     def update(self, player):    #player pos refers to CENTER of player rect here and in move()
         self.time -= 1
@@ -29,47 +35,45 @@ class Lightning(Entity.Entity):
         elif (self.time == -SETTINGS.FRAMERATE):
             self.kill()
         if (self.time > 0):
-            self.move(player.rect.center)
+            self.move(player.posi)
 
 
 
-    def strike(self, player) -> None:
-        temproom = MAP.getRoom(MAP.getRectRoomIndex(self.rect))
-        temptile = temproom.tile_list[temproom.getTileIndexAtLoc(self.rect)]
+    def strike(self, player:Player.Player) -> None:
+        temproom = MAP.getRoom(MAP.getRectRoomIndex(self.get_rect()))
+        temptile = temproom.tile_list[temproom.getTileIndexAtLoc(self.get_rect())]
         porch_right = temptile.building_right.porch
         porch_left = temptile.building_left.porch
         
 		# Check if lighting collides with a roof. If it does, don't damage the player
-        do_player_damage = not (porch_right.lightingStrike(self.rect) 
-                            or porch_left.lightingStrike(self.rect))
+        do_player_damage = not (porch_right.lightingStrike(self.get_rect()) 
+                            or porch_left.lightingStrike(self.get_rect()))
 
-        print("Damage player =", do_player_damage)
         if (do_player_damage):
-            if (self.rect.colliderect(player.rect)):
+            if (self.get_rect().colliderect(player.get_rect())):
                 player.lower_health(20)
-        x = self.rect.centerx
-        self.surface = pygame.transform.scale(pygame.image.load(self.folder + "bolt.png"),(500,500))
-        self.rect.size = (500,500)
-        self.rect.bottom = self.rect.top + (self.size[0]/2)
-        self.rect.centerx = x
+        
+        self.surface = pygame.image.load(self.folder + "bolt.png")
+        MusicManager.play_soundfx("assets/sounds/entities/enemies/lightning/static_zap.wav")
+        self.size = (124,128)
+        self.bottom = self.y
+        # print("Base from Player: (%d, %d)" % (self.x-player.x, self.bottom-player.y))
+        # print("From Player: (%d, %d)" % (self.x-player.x, self.y-player.y))
 
-
-
-
-    def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
+    def old_move_not_using(self, player_pos:tuple[int,int]):  #CENTER of player rect
         move = [0,0]
         horizontal_direction = 0    #   These keep track of horizontal and vertical direction. Left and down are -1,
         vertical_direction = 0      #   right and up are +1. These are used for changing direction image and for normalizing movement
-        if (player_pos[0] < self.rect.center[0]):
+        if (player_pos[0] < self.x):
             move[0] -= self.speed
             horizontal_direction -= 1
-        if (player_pos[0] > self.rect.center[0]):
+        if (player_pos[0] > self.x):
             move[0] += self.speed
             horizontal_direction += 1
-        if (player_pos[1] < self.rect.center[1]):
+        if (player_pos[1] < self.y):
             move[1] -= self.speed
             vertical_direction -= 1
-        if (player_pos[1] > self.rect.center[1]):
+        if (player_pos[1] > self.y):
             move[1] += self.speed
             vertical_direction += 1
 
@@ -79,11 +83,27 @@ class Lightning(Entity.Entity):
             move[1] = adjusted_speed * vertical_direction
         
         if (horizontal_direction == -1):
-            self.rect.centerx = max(player_pos[0], self.rect.centerx + move[0])
+            self.x = max(player_pos[0], self.x + move[0])
         elif (horizontal_direction == 1):
-            self.rect.centerx = min(player_pos[0], self.rect.centerx + move[0])
+            self.x = min(player_pos[0], self.x + move[0])
 
         if (vertical_direction == -1):
-            self.rect.centery = max(player_pos[1], self.rect.centery + move[1])
+            self.y = max(player_pos[1], self.y + move[1])
         elif (vertical_direction == 1):
-            self.rect.centery = min(player_pos[1], self.rect.centery + move[1])
+            self.y = min(player_pos[1], self.y + move[1])
+
+    def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
+        dx = player_pos[0] - self.get_rect().centerx
+        dy = player_pos[1] - self.get_rect().centery
+        distance = math.sqrt(dx * dx + dy * dy)
+        if distance < 0.01: return
+        inertia:float = random.uniform(SETTINGS.LIGHTNING_INERTIA_RANGE_MIN, SETTINGS.LIGHTNING_INERTIA_RANGE_MAX)
+        x_move = dx/distance * self.speed
+        x_move = (x_move * inertia + self.last_move[0]*(1-inertia))#/2
+        y_move = dy/distance * self.speed
+        y_move = (y_move * inertia + self.last_move[1]*(1-inertia))#/2
+        checked_move = super().lightning_move((
+            x_move, y_move
+        ))
+        self.last_move = checked_move
+        self.normalizeMove(checked_move)

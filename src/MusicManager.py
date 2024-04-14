@@ -1,21 +1,22 @@
 import pygame
+import SETTINGS
 import time
 
 class MusicManager:
-
-    def __init__(self):
-        self.music_end = None
-        self.repeat = False
-        self.current_song = None
-        self.standard_volume = 1
+    music_end = None
+    repeat = False
+    current_song = None
+    master_volume = 0.5
+    soundfx_volume = 0.5
+    music_volume = 0.5
 
     # Play song
-    def play_song(self, song, repeat, volume=1):
-        if self.current_song != song:
-            self.current_song = song
-            self.repeat = repeat
-            self.set_volume(volume)
-            self.standard_volume = volume
+    def play_song(song, repeat):
+        if MusicManager.current_song != song:
+            MusicManager.current_song = song
+            repeat = repeat
+            pygame.mixer.music.set_volume(MusicManager.master_volume * MusicManager.music_volume)
+            #self.standard_volume = volume
             pygame.mixer.music.stop()
             pygame.mixer.music.load(song)
 
@@ -25,20 +26,40 @@ class MusicManager:
                 pygame.mixer.music.play()
 
     # Play sound effect
-    def play_soundfx(self, effect, volume=1):
+    def play_soundfx(effect, scale:float = 1):
         sound = pygame.mixer.Sound(effect)
-        sound.set_volume(volume)
+        sound.set_volume(MusicManager.master_volume * MusicManager.soundfx_volume * scale)
         sound.play()
 
-    # Set volume
-    def set_volume(self, volume):
-        pygame.mixer.music.set_volume(volume)
+    # Changing the volume values
+        
+    def change_mastervol(change):
+        MusicManager.master_volume += change
+        MusicManager.master_volume = max(0, min(MusicManager.master_volume, 1))
+        pygame.mixer.music.set_volume(MusicManager.master_volume * MusicManager.music_volume)
+    
+    def set_mastervol(change):
+        MusicManager.master_volume = change
+        MusicManager.master_volume = max(0, min(MusicManager.master_volume, 1))
+        pygame.mixer.music.set_volume(MusicManager.master_volume * MusicManager.music_volume)
 
-    # Volume check
-    def volume_check(self, event):
+    def change_musicvol(change):
+        MusicManager.music_volume += change
+        MusicManager.music_volume = max(0, min(MusicManager.music_volume, 1))
+        pygame.mixer.music.set_volume(MusicManager.master_volume * MusicManager.music_volume)
+
+    def change_soundfxvol(change):
+        MusicManager.soundfx_volume += change
+        MusicManager.soundfx_volume = max(0, min(MusicManager.soundfx_volume, 1))
+    
+
+    # Master volume changer for mid game
+    def master_volume_game_change(event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                self.standard_volume += .1
+                MusicManager.master_volume += .1
             elif event.key == pygame.K_DOWN:
-                self.standard_volume -= .1
-        self.set_volume(self.standard_volume)
+                MusicManager.master_volume -= .1
+        # Clamping the value
+        MusicManager.master_volume = max(0, min(MusicManager.master_volume, 1))
+        pygame.mixer.music.set_volume(MusicManager.master_volume * MusicManager.music_volume)
