@@ -235,14 +235,14 @@ def play():
 
             if (pygame.key.get_pressed()[pygame.K_k]):
                 if (k_pressed == False):
-                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 20)
+                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT))
                     enemy_list.append(newe)
                 k_pressed = True
             else:
                 k_pressed = False
             if (pygame.key.get_pressed()[pygame.K_LEFTBRACKET]):
                 if (left_bracket_pressed == False):
-                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT), 20, enemy_projectile_list)
+                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT),enemy_projectile_list)
                     enemy_list.append(newe)
                 left_bracket_pressed = True
             else:
@@ -250,7 +250,7 @@ def play():
 
             if (pygame.key.get_pressed()[pygame.K_RIGHTBRACKET]):
                 if (right_bracket_pressed == False):
-                    newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, lightning_bolt_list)
+                    newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), lightning_bolt_list)
                     enemy_list.append(newe)
                 right_bracket_pressed = True
             else:
@@ -295,11 +295,11 @@ def play():
                         #else:
                         #    e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                         if (enemy_type <= 50):
-                            newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 20)#, 1)
+                            newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y))
                         elif (enemy_type <= 85):
-                            newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 20, enemy_projectile_list)
+                            newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), enemy_projectile_list)
                         else:
-                            newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
+                            newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), lightning_bolt_list)
                         if isinstance(newe, Enemies.SummonerEnemy):
                             position_good = True
                         else:
@@ -339,59 +339,59 @@ def play():
                     enemy_list.remove(e)
 
             for ep in enemy_projectile_list:
-                ep.damage_check(player)
                 if (ep.alive) and camera.render_area.colliderect(ep.get_rect()):
                     render_group.appendSky(ep)
+                    ep.damage_check(player)
                 else:
                     enemy_projectile_list.remove(ep)
                 ep.update()
 
-        for p in player_projectile_list:
-            for e in enemy_list:
-                p.damage_check(e)
-            if (p.alive) and camera.render_area.colliderect(p.get_rect()):
-                render_group.appendSky(p)
-            else:
-                player_projectile_list.remove(p)
-            p.update()
+            for p in player_projectile_list:
+                for e in enemy_list:
+                    p.damage_check(e)
+                if (p.alive) and camera.render_area.colliderect(p.get_rect()):
+                    render_group.appendSky(p)
+                else:
+                    player_projectile_list.remove(p)
+                p.update()
 
-        # Rendering prep
-        pre_screen.fill(BG_COLOR)
-        map.playerCheck(player)
-        camera.update()
+            # Rendering prep
+            pre_screen.fill(BG_COLOR)
+            map.playerCheck(player)
+            camera.update()
 
-        # Rendering
-        map.fillRendergroup(render_group)
-        render_group.appendTo(player, 3)
-        for lo in loot_list:
-        #render_group.appendTo(lo, 2)   this doesn't seem to work but it renders properly in Map
-            if (lo.update(player)) == True:
-                loot_list.remove(lo)
-        render_group.render(pre_screen, camera) # Render everything within the render group
+            # Rendering
+            map.fillRendergroup(render_group)
+            render_group.appendTo(player, 3)
+            for lo in loot_list:
+            #render_group.appendTo(lo, 2)   this doesn't seem to work but it renders properly in Map
+                if (lo.update(player)) == True:
+                    loot_list.remove(lo)
+            render_group.render(pre_screen, camera) # Render everything within the render group
 
-        pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)
+            pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)
 
-        # Drawing the UI last
-        ui.draw(screen, ui_font, WHITE)
+            # Drawing the UI last
+            ui.draw(screen, ui_font, WHITE)
 
-        # Refresh the display
-        pygame.display.flip()
+            # Refresh the display
+            pygame.display.flip()
 
-            # Renderng cleanup
-        render_group.clearAll()
-            
-        i -= 1
-            
-        if i < 1:
-            # print(map.getStats())
-            # print(clock.get_fps())
-            # print("Player Health =", player.health)
-            i = PRINT_RATE
+                # Renderng cleanup
+            render_group.clearAll()
+                
+            i -= 1
+                
+            if i < 1:
+                # print(map.getStats())
+                # print(clock.get_fps())
+                # print("Player Health =", player.health)
+                i = PRINT_RATE
 
                 
                 
-        # Cap the frame rate
-        clock.tick(60)
+            # Cap the frame rate
+            clock.tick(60)
 
     # Quit Pygame
     quit()

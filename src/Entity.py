@@ -7,7 +7,7 @@ from Collision import StaticCollidable
 from MusicManager import MusicManager
 
 class Entity(Renderable.Renderable):
-    def __init__(self, texture, size, pos, health, speed:float, iframes:int = SETTINGS.FRAMERATE):
+    def __init__(self, texture, size, pos, health, speed:float, iframes:int = SETTINGS.IFRAMES):
         super().__init__(   texture,      size,  pos)
         #                   ^ img file                  ^ size      ^start pos
         self.speed = speed
@@ -33,9 +33,11 @@ class Entity(Renderable.Renderable):
         self.health = max(0,self.health)
         if (self.health == 0):
             self.alive = False
+            self.iframes = SETTINGS.FRAMERATE * 2
+            MusicManager.play_soundfx(self.death_sound)
 
     def damage(self, value:int):    #lower health but with after-damage i-frames
-        if (self.iframes == 0):
+        if self.iframes == 0 and self.alive:
             self.health -= value
             self.health = max(0,self.health)
             if (self.health == 0):
@@ -43,7 +45,8 @@ class Entity(Renderable.Renderable):
                 MusicManager.play_soundfx(self.death_sound)
             else:
                 MusicManager.play_soundfx(self.damage_sound)
-            self.iframes = self.iframes_max
+                self.iframes = self.iframes_max
+
 
     def increase_health(self, value:int):
         self.health += value
