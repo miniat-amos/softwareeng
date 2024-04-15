@@ -241,11 +241,11 @@ class Room(StaticCollidable):
 			pos:tuple[int,int] = [random.randint(self.get_rect().left, self.get_rect().right), random.randint(self.get_rect().top, self.get_rect().bottom)]
 			long_val = random.randint(1,100)
 			if (long_val <= 10):
-				val = 1000
+				val = SETTINGS.LOOT_VALUE_LARGE
 			elif (long_val <= 50):
-				val = 100
+				val = SETTINGS.LOOT_VALUE_MEDIUM
 			else:
-				val = 10
+				val = SETTINGS.LOOT_VALUE_SMALL
 			# Note: loot value must currently be 10, 100, or 1000
 			l = Loot.Loot(pos, val)
 			if (self.collision_boolean(l)):
