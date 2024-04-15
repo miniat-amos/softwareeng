@@ -85,8 +85,8 @@ back_button = Button(280, 600, img_button, img_button_hover, "Back", menu_button
 scoreboard_button = Button(280, 600, img_button, img_button_hover, "Scoreboard", menu_button_font)
 
 # Options menu buttons
-volbutton_x1 = 150
-volbutton_x2 = 575
+volbutton_x1 = 130
+volbutton_x2 = 595
 volubtton_y = 90
 volbutton_y_change = 100
 mastervol_increase = Button(volbutton_x2, volubtton_y, img_button_small, img_button_hover_small, "+", menu_button_font)
@@ -394,16 +394,16 @@ def options():
     #enter_score(15, datetime.now())
     back_button.setPos(280, 400)
 
-    # Text surface init
-    ts_mastervol = menu_button_font.render("Master Volume", True, WHITE)
-    ts_musicvol = menu_button_font.render("Music Volume", True, WHITE)
-    ts_soundfxvol = menu_button_font.render("Sound FXs Volume", True, WHITE)
-
-    ts_mastervol_centerx = (screen_width - ts_mastervol.get_rect().width) // 2
-    ts_musicvol_centerx = (screen_width - ts_musicvol.get_rect().width) // 2
-    ts_soundfxvol_centerx = (screen_width - ts_soundfxvol.get_rect().width) // 2
-
     while True:
+
+        # Text surface init
+        ts_mastervol = menu_button_font.render("Master Volume: " + str(round(100 * MusicManager.master_volume)) + "%", True, WHITE)
+        ts_musicvol = menu_button_font.render("Music Volume: " + str(round(100 * MusicManager.music_volume)) + "%", True, WHITE)
+        ts_soundfxvol = menu_button_font.render("Sound FX Volume: " + str(round(100 * MusicManager.soundfx_volume)) + "%", True, WHITE)
+
+        ts_mastervol_centerx = (screen_width - ts_mastervol.get_rect().width) // 2
+        ts_musicvol_centerx = (screen_width - ts_musicvol.get_rect().width) // 2
+        ts_soundfxvol_centerx = (screen_width - ts_soundfxvol.get_rect().width) // 2
 
         # Getting mouse data
         mouse_pos = pygame.mouse.get_pos()
