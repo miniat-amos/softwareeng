@@ -107,7 +107,7 @@ def play():
     
     # Set up the player
     player_projectile_list:list[Projectile.Projectile] = []
-    player = Player.Player("assets/sprites/entities/players/cowboy/", player_projectile_list)
+    player = Player.Ninja(player_projectile_list)
 
     # Create UI
     ui = UI(player)

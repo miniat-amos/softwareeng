@@ -8,8 +8,8 @@ import Projectile
 from MusicManager import MusicManager
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
-    def __init__(self, texture_folder:str, player_projectile_list, map = 0, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
-        super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
+    def __init__(self, texture_folder:str, player_projectile_list, map = 0, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN, speed=SETTINGS.PLAYER_SPEED):
+        super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    speed)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
         self.inventory = Inventory.Inventory()
@@ -19,6 +19,8 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
         self.projectile_list = player_projectile_list
         self.attack_cooldown:int = attack_cooldown
         self.attack_cooldown_max:int = attack_cooldown
+        self.projectile_image:str
+        self.projectile_piercing:bool
 
     def set_camera(self, camera:Camera.Camera):
         self.camera = camera
@@ -99,7 +101,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             else:
                 angle = math.degrees(math.atan((ydiff) / (xdiff)))
             if (xdiff < 0): angle += 180
-            newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), 
+            newp = Projectile.Projectile(self.projectile_image, (16,16), 
                                          (self.pos[0] + 3, self.pos[1] + 3),
                                          1, 1.5, 20, angle)
             self.projectile_list.append(newp)
@@ -146,6 +148,24 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             for item in self.inventory.items:
                 print(item , ": " , str(self.inventory.items[item]))
 
+
+class Cowboy(Player):
+    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
+        super().__init__(SETTINGS.COWBOY_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.COWBOY_SPEED)
+        self.projectile_image = SETTINGS.COWBOY_FOLDER + "projectile.png"
+        self.projectile_piercing = True
+
+    def update(self):
+        super().update()
+
+class Ninja(Player):
+    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
+        super().__init__(SETTINGS.COWBOY_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.NINJA_SPEED)
+        self.projectile_image = SETTINGS.NINJA_FOLDER + "projectile.png"
+        self.projectile_piercing = False
+
+    def update(self):
+        super().update()
 
 def undoAxis(undo_axis:float, other_axis:float, max_dist:float) -> float:
     dist = abs(math.pow(max_dist, 2) - math.pow(other_axis, 2))

@@ -25,6 +25,14 @@ ENEMY_SUMMONER_CIRCLE_RADIUS = 50
 PLAYER_SPEED = 1
 PLAYER_ATTACK_COOLDOWN = 30
 
+COWBOY_SPEED = 1
+NINJA_SPEED = 1.5
+ROADRUNNER_SPEED = 2
+
+COWBOY_FOLDER = "assets/sprites/entities/players/cowboy/"
+NINJA_FOLDER = "assets/sprites/entities/players/ninja/"
+ROADRUNNER_FOLDER = "assets/sprites/entities/players/roadrunner/"
+
 #Enemy settings
 ENEMY_DEFAULT_SPEED = 1
 MELEE_ENEMY_ATTACK_SOUND = "assets/sounds/entities/enemies/melee/melee_attack_hit.ogg"
