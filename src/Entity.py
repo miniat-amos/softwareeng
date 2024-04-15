@@ -20,7 +20,7 @@ class Entity(Renderable.Renderable):
         self.iframes:int = 0
         self.iframes_max:int = iframes
         self.damage_sound:str = SETTINGS.SILENCE_SOUND
-        self.damage_sound:str = SETTINGS.SILENCE_SOUND
+        self.death_sound:str = SETTINGS.SILENCE_SOUND
         self.dead_ticks = 0
 
     def update(self):
