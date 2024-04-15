@@ -32,7 +32,7 @@ ROADRUNNER_FOLDER = "assets/sprites/entities/players/roadrunner/"
 
 COWBOY_PROJECTILE_SOUND = "assets/sounds/entities/players/cowboy/fire.wav"
 NINJA_PROJECTILE_SOUND = "assets/sounds/entities/players/ninja/throw.mp3"
-ROADRUNNER_PROJECTILE_SOUND = "assets/sounds/entities/players/roadrunner/launch.wav"
+ROADRUNNER_PROJECTILE_SOUND = "assets/sounds/entities/players/roadrunner/launch.ogg"
 
 COWBOY_PROJECTILE_DAMAGE = 20
 NINJA_PROJECTILE_DAMAGE = 15

@@ -177,6 +177,18 @@ class Ninja(Player):
     def update(self):
         super().update()
 
+class Roadrunner(Player):
+    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.ROADRUNNER_ATTACK_COOLDOWN):
+        super().__init__(SETTINGS.ROADRUNNER_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.ROADRUNNER_SPEED)
+        self.projectile_image = SETTINGS.ROADRUNNER_FOLDER + "projectile.png"
+        self.projectile_piercing = False
+        self.projectile_sound = SETTINGS.ROADRUNNER_PROJECTILE_SOUND
+        self.projectile_speed = SETTINGS.ROADRUNNER_PROJECTILE_SPEED
+        self.projectile_damage = SETTINGS.ROADRUNNER_PROJECTILE_DAMAGE
+
+    def update(self):
+        super().update()
+
 def undoAxis(undo_axis:float, other_axis:float, max_dist:float) -> float:
     dist = abs(math.pow(max_dist, 2) - math.pow(other_axis, 2))
     new_move = min(math.sqrt(dist),
