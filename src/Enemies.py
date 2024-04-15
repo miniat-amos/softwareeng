@@ -20,12 +20,13 @@ class Enemy(Entity.GroundEntity):
         self.tex_offset = [-3,-6]
         self.enemy_projectile_list:list[Projectile.Projectile] = []
         self.lightning_bolt_list:list[Lightning.Lightning]
+        self.iframes_max = SETTINGS.ENEMY_IFRAMES
 
     def melee_attack(self, player:Player.Player):
         self.attack_cooldown = max(self.attack_cooldown-1, 0)
         if (self.attack_cooldown == 0):
             if (self.get_rect().colliderect(player.get_rect())) and player.alive:
-                player.lower_health(self.attack_damage)
+                player.damage(self.attack_damage)
                 MusicManager.play_soundfx(SETTINGS.MELEE_ENEMY_ATTACK_SOUND, 1.5)
                 self.attack_cooldown = self.attack_cooldown_max
 

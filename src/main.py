@@ -377,7 +377,7 @@ def play():
             # Refresh the display
             pygame.display.flip()
 
-            # Renderng cleanup
+            # Rendering cleanup
             render_group.clearAll()
             
             i -= 1

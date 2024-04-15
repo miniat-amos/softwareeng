@@ -8,7 +8,7 @@ import Projectile
 from MusicManager import MusicManager
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
-    def __init__(self, texture_folder:str, player_projectile_list, map = 0, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN, speed=SETTINGS.PLAYER_SPEED):
+    def __init__(self, texture_folder:str, player_projectile_list, map, attack_cooldown, speed):
         super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    speed)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
@@ -21,6 +21,10 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
         self.attack_cooldown_max:int = attack_cooldown
         self.projectile_image:str
         self.projectile_piercing:bool
+        self.projectile_sound:str
+        self.projectile_speed:float
+        self.projectile_damage:int
+        self.iframes_max = SETTINGS.PLAYER_IFRAMES
 
     def set_camera(self, camera:Camera.Camera):
         self.camera = camera
@@ -101,11 +105,11 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             else:
                 angle = math.degrees(math.atan((ydiff) / (xdiff)))
             if (xdiff < 0): angle += 180
-            newp = Projectile.Projectile(self.projectile_image, (16,16), 
+            newp = Projectile.Projectile(self.projectile_image, (10,10), 
                                          (self.pos[0] + 3, self.pos[1] + 3),
-                                         1, 1.5, 20, angle)
+                                         1, self.projectile_speed, 20, angle, self.projectile_piercing)
             self.projectile_list.append(newp)
-            MusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav", 0.5)
+            MusicManager.play_soundfx(self.projectile_sound, 0.5)
             self.attack_cooldown = self.attack_cooldown_max
 
     def button_functions(self):
@@ -150,19 +154,25 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
 
 
 class Cowboy(Player):
-    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
+    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.COWBOY_ATTACK_COOLDOWN):
         super().__init__(SETTINGS.COWBOY_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.COWBOY_SPEED)
         self.projectile_image = SETTINGS.COWBOY_FOLDER + "projectile.png"
         self.projectile_piercing = True
+        self.projectile_sound = SETTINGS.COWBOY_PROJECTILE_SOUND
+        self.projectile_speed = SETTINGS.COWBOY_PROJECTILE_SPEED
+        self.projectile_damage = SETTINGS.COWBOY_PROJECTILE_DAMAGE
 
     def update(self):
         super().update()
 
 class Ninja(Player):
-    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
-        super().__init__(SETTINGS.COWBOY_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.NINJA_SPEED)
+    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.NINJA_ATTACK_COOLDOWN):
+        super().__init__(SETTINGS.NINJA_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.NINJA_SPEED)
         self.projectile_image = SETTINGS.NINJA_FOLDER + "projectile.png"
         self.projectile_piercing = False
+        self.projectile_sound = SETTINGS.NINJA_PROJECTILE_SOUND
+        self.projectile_speed = SETTINGS.NINJA_PROJECTILE_SPEED
+        self.projectile_damage = SETTINGS.NINJA_PROJECTILE_DAMAGE
 
     def update(self):
         super().update()

@@ -5,7 +5,7 @@ import Collision
 import Renderable
 
 class Projectile(Entity.Entity):
-    def __init__(self, texture, size, pos, health, speed, damage:int, angle:float, piercing:bool = True):
+    def __init__(self, texture, size, pos, health, speed, damage:int, angle:float, piercing:bool = False):
                                                                         #ANGLE IS IN DEGREES
         self.damage:float = damage
         super().__init__(texture, size, pos, health, speed)
@@ -14,6 +14,7 @@ class Projectile(Entity.Entity):
         self.currently_damaging = False
         self.starting_image:pygame.Surface = self.surface
         self.tex_offset = [-3,-6]
+        self.speed = speed
 
     def damage_check(self, target:Renderable.Renderable):
         if target.get_rect().colliderect(self.get_rect()):

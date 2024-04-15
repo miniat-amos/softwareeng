@@ -7,7 +7,7 @@ from Collision import StaticCollidable
 from MusicManager import MusicManager
 
 class Entity(Renderable.Renderable):
-    def __init__(self, texture, size, pos, health, speed:float, iframes:int = SETTINGS.IFRAMES):
+    def __init__(self, texture, size, pos, health, speed:float, iframes:int = 1):
         super().__init__(   texture,      size,  pos)
         #                   ^ img file                  ^ size      ^start pos
         self.speed = speed
