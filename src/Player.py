@@ -85,9 +85,9 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def ranged_attack(self):
         if (pygame.mouse.get_pressed()[0] and self.attack_cooldown == 0):
             print(pygame.mouse.get_pos()[0] + self.camera.render_area.left, 
-                  4*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
+                  SETTINGS.SCALE*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
                   self.pos)
-            cy = 4*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1])
+            cy = SETTINGS.SCALE*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1])
             cx = pygame.mouse.get_pos()[0] + self.camera.render_area.left
             xdiff = cx - SETTINGS.SCALE * self.x
             ydiff = cy - SETTINGS.SCALE * self.y
