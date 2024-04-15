@@ -50,8 +50,6 @@ RED = (245, 18, 2)
 # Set up clock
 clock = pygame.time.Clock()
 
-# Set up the music manager
-#music_manager = MusicManager.MusicManager()
 # Songs
 maingame = 'assets/music/Maingame.mp3'
 menu = 'assets/music/Menu.mp3'
@@ -100,8 +98,6 @@ optionsmenu_buttons = [mastervol_increase, mastervol_decrease, musicvol_increase
 
 buttons = [play_button, options_button, quit_button, scoreboard_button]
 
-enemy_projectile_list:list[Projectile.Projectile] = []
-
 
 def play():
 
@@ -110,13 +106,16 @@ def play():
     dying = False
     
     # Set up the player
-    player = Player.Player("assets/sprites/entities/players/cowboy/")
+    player_projectile_list:list[Projectile.Projectile] = []
+    player = Player.Player("assets/sprites/entities/players/cowboy/", player_projectile_list)
 
     # Create UI
     ui = UI(player)
 
     # Set up the camera
     camera = Camera(player, SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT)
+
+    player.set_camera(camera)
 
     MusicManager.play_song(maingame, True)
 
@@ -134,7 +133,7 @@ def play():
 
     lightning_bolt_list:list[Lightning.Lightning] = []
     enemy_list:list[Enemies.Enemy] = []
-    #enemy_projectile_list:list[Projectile.Projectile] = []
+    enemy_projectile_list:list[Projectile.Projectile] = []
 
     l_pressed = False
     p_pressed = False
@@ -236,14 +235,14 @@ def play():
 
             if (pygame.key.get_pressed()[pygame.K_k]):
                 if (k_pressed == False):
-                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20)#, 1)
+                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT))
                     enemy_list.append(newe)
                 k_pressed = True
             else:
                 k_pressed = False
             if (pygame.key.get_pressed()[pygame.K_LEFTBRACKET]):
                 if (left_bracket_pressed == False):
-                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, enemy_projectile_list)
+                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT),enemy_projectile_list)
                     enemy_list.append(newe)
                 left_bracket_pressed = True
             else:
@@ -251,7 +250,7 @@ def play():
 
             if (pygame.key.get_pressed()[pygame.K_RIGHTBRACKET]):
                 if (right_bracket_pressed == False):
-                    newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, lightning_bolt_list)
+                    newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), lightning_bolt_list)
                     enemy_list.append(newe)
                 right_bracket_pressed = True
             else:
@@ -284,7 +283,7 @@ def play():
             # Spawn new enemies
             if (current_frame == math.floor(FRAME_RATE/2)):	
                 # once per second:
-                newr = random.randrange(0,5,1)		# 1/6 random chance to
+                newr = random.randrange(0,3,1)		# 1/6 random chance to
                 if (newr == 0):						# spawn new enemy
                     enemy_type = random.randrange(1,100,1)
                     newe:Enemies.Enemy
@@ -296,11 +295,11 @@ def play():
                         #else:
                         #    e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                         if (enemy_type <= 50):
-                            newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 100, 20)#, 1)
+                            newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y))
                         elif (enemy_type <= 85):
-                            newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 100, 20, enemy_projectile_list)
+                            newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), enemy_projectile_list)
                         else:
-                            newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
+                            newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), lightning_bolt_list)
                         if isinstance(newe, Enemies.SummonerEnemy):
                             position_good = True
                         else:
@@ -318,12 +317,12 @@ def play():
             player.button_functions() # Functions for player values
             map.collide_loot(player)
             map.tick() # Update map	
-            player.button_functions() #just functions for player values and stuff
+            
 
             # Update lighting bolts and add them to the render group
             for l in lightning_bolt_list:
                 l.update(player)
-                if (l.alive):
+                if (l.should_render):
                     render_group.appendSky(l)
                 else:
                     lightning_bolt_list.remove(l)
@@ -331,7 +330,7 @@ def play():
 
             for e in enemy_list:
                 e.update(player)
-                if (e.alive):
+                if (e.should_render):
                     if isinstance(e, Enemies.SummonerEnemy):
                         render_group.appendSky(e)
                     else:
@@ -340,12 +339,22 @@ def play():
                     enemy_list.remove(e)
 
             for ep in enemy_projectile_list:
-                ep.update(player)
                 if (ep.alive) and camera.render_area.colliderect(ep.get_rect()):
                     render_group.appendSky(ep)
+                    ep.damage_check(player)
                 else:
                     enemy_projectile_list.remove(ep)
+                ep.update()
 
+            for p in player_projectile_list:
+                for e in enemy_list:
+                    p.damage_check(e)
+                if (p.alive) and camera.render_area.colliderect(p.get_rect()):
+                    render_group.appendSky(p)
+                else:
+                    player_projectile_list.remove(p)
+                p.update()
+                
             # Rendering prep
             pre_screen.fill(BG_COLOR)
             map.playerCheck(player)

@@ -2,16 +2,26 @@ import pygame
 import Entity
 import Inventory
 import SETTINGS
+import Camera
 import math
+import Projectile
+from MusicManager import MusicManager
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
-    def __init__(self, texture_folder:str, map = 0):
+    def __init__(self, texture_folder:str, player_projectile_list, map = 0, attack_cooldown = SETTINGS.PLAYER_ATTACK_COOLDOWN):
         super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
         self.inventory = Inventory.Inventory()
         self.build = 0
-        self.tex_offset = (-3,-6)
+        self.tex_offset = [-3,-6]
+        self.camera:Camera.Camera
+        self.projectile_list = player_projectile_list
+        self.attack_cooldown:int = attack_cooldown
+        self.attack_cooldown_max:int = attack_cooldown
+
+    def set_camera(self, camera:Camera.Camera):
+        self.camera = camera
     
     def add_points(self, amount:int):
         if (amount < 0):
@@ -34,7 +44,10 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     
     def update(self):
         if (self.alive):
+            self.attack_cooldown = max(0, self.attack_cooldown-1)
             self.move()
+            self.ranged_attack()
+            super().update()
 
     def move(self):
         horizontal_direction = 0    #   These keep track of horizontal and vertical direction. Left and down are -1,
@@ -68,6 +81,30 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             # If Y-movement is greater, adjust Y-movement only
             else:
                 self.x += undoAxis(checked_move[0], checked_move[1], self.speed)
+
+    def ranged_attack(self):
+        if (pygame.mouse.get_pressed()[0] and self.attack_cooldown == 0):
+            print(pygame.mouse.get_pos()[0] + self.camera.render_area.left, 
+                  4*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
+                  self.pos)
+            cy = 4*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1])
+            cx = pygame.mouse.get_pos()[0] + self.camera.render_area.left
+            xdiff = cx - SETTINGS.SCALE * self.x
+            ydiff = cy - SETTINGS.SCALE * self.y
+            if (xdiff == 0):
+                if (ydiff < 0):
+                    angle = 270
+                else:
+                    angle = 90
+            else:
+                angle = math.degrees(math.atan((ydiff) / (xdiff)))
+            if (xdiff < 0): angle += 180
+            newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), 
+                                         (self.pos[0] + 3, self.pos[1] + 3),
+                                         1, 1.5, 20, angle)
+            self.projectile_list.append(newp)
+            MusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav", 0.5)
+            self.attack_cooldown = self.attack_cooldown_max
 
     def button_functions(self):
         if (pygame.key.get_pressed()[pygame.K_z]):

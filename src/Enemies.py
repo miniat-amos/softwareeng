@@ -33,9 +33,17 @@ class Enemy(Entity.GroundEntity):
         self.attack_cooldown = max(self.attack_cooldown-1, 0)
         if (self.attack_cooldown == 0):
             if player.alive:
-                angle = math.degrees(math.atan((player.y-self.y) / (player.x-self.x)))
-                if (player.xi < self.xi): angle += 180
-                newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, 20,
+                xdiff = player.x - self.x
+                ydiff = player.y - self.y
+                if (xdiff == 0):
+                    if (ydiff < 0):
+                        angle = 270
+                    else:
+                        angle = 90
+                else:
+                    angle = math.degrees(math.atan((player.y-self.y) / (xdiff)))
+                if (xdiff < 0): angle += 180
+                newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, self.attack_damage,
                                              angle)
                 self.enemy_projectile_list.append(newp)
                 MusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav")
@@ -51,19 +59,23 @@ class Enemy(Entity.GroundEntity):
                 self.attack_cooldown = self.attack_cooldown_max
 
 
-    def update(self, player:Player.Player):
-        if (self.alive):
-            self.move(player.get_rect().center)
+    def update(self):
+        super().update()
 
 class MeleeEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN):
+    def __init__(self, folder:str, map, size, pos,
+                health:int = SETTINGS.ENEMY_MELEE_HEALTH, attack_damage:int = SETTINGS.ENEMY_MELEE_ATTACK_DAMAGE,
+                attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
         super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.last_move:tuple[float,float] = [0,0]
+        self.damage_sound = "assets/sounds/entities/enemies/melee/damage.wav"
+        self.death_sound = "assets/sounds/entities/enemies/melee/death.mp3"
 
     def update(self, player:Player.Player):
         if (self.alive):
             self.melee_attack(player)
             self.move(player.pos)
+        super().update()
         
     def move(self, player_pos:tuple[int,int]):  #CENTER of player rect
         dx = player_pos[0] - self.get_rect().centerx
@@ -82,14 +94,19 @@ class MeleeEnemy(Enemy):
         self.normalizeMove(checked_move)
 
 class RangedEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, enemy_projectile_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_RANGED_COOLDOWN):
+    def __init__(self, folder:str, map, size, pos, enemy_projectile_list,
+                 health:int = SETTINGS.ENEMY_RANGED_HEALTH, attack_damage:int = SETTINGS.ENEMY_RANGED_ATTACK_DAMAGE,
+                 attack_cooldown:int = SETTINGS.ENEMY_RANGED_COOLDOWN, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
         super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.enemy_projectile_list = enemy_projectile_list
+        self.damage_sound = "assets/sounds/entities/enemies/ranger/damage.mp3"
+        self.death_sound = "assets/sounds/entities/enemies/ranger/death.mp3"
 
     def update(self, player:Player.Player):
         if (self.alive and (abs(player.yi-self.yi) < SETTINGS.WR_HEIGHT)):
             self.ranged_attack(player)
             self.turn(player)
+        super().update()
 
     def turn(self, player:Player.Player):
         xch = player.xi - self.xi
@@ -107,12 +124,17 @@ class RangedEnemy(Enemy):
 
 
 class SummonerEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, health:int, attack_damage:int, lightning_bolt_list, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED, attack_cooldown:int = SETTINGS.ENEMY_SUMMONER_COOLDOWN):
+    def __init__(self, folder:str, map, size, pos, lightning_bolt_list,
+                 health:int = SETTINGS.ENEMY_SUMMONER_HEALTH, attack_damage:int = 0,
+                 attack_cooldown:int = SETTINGS.ENEMY_SUMMONER_COOLDOWN, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
         super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
         self.lightning_bolt_list = lightning_bolt_list
         MusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.wav", 0.75)
         self.angle:float = math.radians(random.randrange(0,359, 1))
         self.starting_pos = pos
+        self.damage_sound = "assets/sounds/entities/enemies/summoner/damage.mp3"
+        self.death_sound = "assets/sounds/entities/enemies/summoner/death.mp3"
+        self.attack_cooldown = self.attack_cooldown_max
 
     def update(self, player:Player.Player):
         if (self.alive):
@@ -120,6 +142,7 @@ class SummonerEnemy(Enemy):
             if (abs(player.yi-self.yi) < (SETTINGS.WR_HEIGHT)):
                 self.summoner_attack(player)
             self.move()
+        super().update()
 
     def move(self):
         self.x = (SETTINGS.ENEMY_SUMMONER_CIRCLE_RADIUS*math.cos(self.angle) + self.starting_pos[0])

@@ -23,7 +23,7 @@ class Lightning(Entity.Entity):
     def __init__(self, folder:str, pos:tuple[int,int], time):
         super().__init__(   folder+"target.png",    (8,8),  pos,        100,    0.8)
         #                   ^ img file              ^ size      ^start pos  ^health ^speed
-        self.surface.set_alpha(196)
+        #self.surface.set_alpha(196)
         self.folder = folder
         self.time = time
         self.last_move:tuple[float,float] = [0,0]
@@ -32,10 +32,12 @@ class Lightning(Entity.Entity):
         self.time -= 1
         if (self.time == 0):
             self.strike(player)
-        elif (self.time == -SETTINGS.FRAMERATE):
             self.kill()
+        #elif (self.time == -SETTINGS.FRAMERATE):
+        #    self.kill()
         if (self.time > 0):
             self.move(player.posi)
+        super().update()
 
 
 
