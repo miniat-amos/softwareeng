@@ -65,6 +65,12 @@ img_button_hover = pygame.image.load("assets/sprites/menu/Button_Hover.png")
 img_button = pygame.image.load("assets/sprites/menu/Button.png")
 img_button_hover_small = pygame.image.load("assets/sprites/menu/Button_Hover_Small.png")
 img_button_small = pygame.image.load("assets/sprites/menu/Button_Small.png")
+cowboy_button_image = pygame.image.load("assets/sprites/menu/cowboy_button.png")
+cowboy_button_image_hover = pygame.image.load("assets/sprites/menu/cowboy_button_hover.png")
+ninja_button_image = pygame.image.load("assets/sprites/menu/ninja_button.png")
+ninja_button_image_hover = pygame.image.load("assets/sprites/menu/ninja_button_hover.png")
+roadrunner_button_image = pygame.image.load("assets/sprites/menu/roadrunner_button.png")
+roadrunner_button_image_hover = pygame.image.load("assets/sprites/menu/roadrunner_button_hover.png")
 
 # Logo
 logo_scale = .50
@@ -96,10 +102,21 @@ soundfxvol_decrease = Button(volbutton_x1, volubtton_y + volbutton_y_change * 2,
 
 optionsmenu_buttons = [mastervol_increase, mastervol_decrease, musicvol_increase, musicvol_decrease, soundfxvol_increase, soundfxvol_decrease, back_button]
 
+# Player select menu buttons
+player_1_button_x = 20
+player_2_button_x = 280
+player_3_button_x= 540
+player_button_y = 50
+player_1_button = Button(player_1_button_x, player_button_y, cowboy_button_image, cowboy_button_image_hover, "", menu_button_font)
+player_2_button = Button(player_2_button_x, player_button_y, ninja_button_image, ninja_button_image_hover, "", menu_button_font)
+player_3_button = Button(player_3_button_x, player_button_y, roadrunner_button_image, roadrunner_button_image_hover, "", menu_button_font)
+
+playermenu_buttons = [player_1_button, player_2_button, player_3_button, back_button]
+
 buttons = [play_button, options_button, quit_button, scoreboard_button]
 
 
-def play():
+def play(player_type:int):
 
     gameover_ticks = 0
     gameover_delay = 200
@@ -107,7 +124,12 @@ def play():
     
     # Set up the player
     player_projectile_list:list[Projectile.Projectile] = []
-    player = Player.Roadrunner(player_projectile_list)
+    if (player_type == 0):
+        player = Player.Cowboy(player_projectile_list)
+    elif(player_type == 1):
+        player = Player.Ninja(player_projectile_list)
+    elif(player_type == 2):
+        player = Player.Roadrunner(player_projectile_list)
 
     # Create UI
     ui = UI(player)
@@ -459,6 +481,86 @@ def options():
 
         clock.tick(60)
 
+def player_select():
+    # Insert our main branch options configurations once ready
+    # Rendering
+    #enter_score(15, datetime.now())
+    back_button.setPos(280, 600)
+
+    cowboy_button_centerx = (player_1_button.rect.left + player_1_button.rect.right) / 2
+    ninja_button_centerx = (player_2_button.rect.left + player_2_button.rect.right) / 2
+    roadrunner_button_centerx = (player_3_button.rect.left + player_3_button.rect.right) / 2
+
+    # Text surface init
+    cowboy_text_1 = menu_button_font.render("Cowboy", True, WHITE)
+    cowboy_text_2 = menu_button_font.render("Average health", True, WHITE)
+    cowboy_text_3 = menu_button_font.render("Average damage", True, WHITE)
+    cowboy_text_4 = menu_button_font.render("Average speed", True, WHITE)
+    cowboy_text_5 = menu_button_font.render("Piercing bullets", True, WHITE)
+    ninja_text_1 = menu_button_font.render("Ninja", True, WHITE)
+    ninja_text_2 = menu_button_font.render("+ Health", True, WHITE)
+    ninja_text_3 = menu_button_font.render("- Damage", True, WHITE)
+    ninja_text_4 = menu_button_font.render("+ Speed", True, WHITE)
+    ninja_text_5 = menu_button_font.render("Fast firing", True, WHITE)
+    roadrunner_text_1 = menu_button_font.render("Roadrunner", True, WHITE)
+    roadrunner_text_2 = menu_button_font.render("- Health", True, WHITE)
+    roadrunner_text_3 = menu_button_font.render("+ Damage", True, WHITE)
+    roadrunner_text_4 = menu_button_font.render("Super Speed", True, WHITE)
+    roadrunner_text_5 = menu_button_font.render("- Fire Rate", True, WHITE)
+
+    cowboy_text_x = (cowboy_button_centerx - cowboy_text_1.get_rect().width/2)
+    ninja_text_x = (ninja_button_centerx - ninja_text_1.get_rect().width/2)
+    roadrunner_text_x = (roadrunner_button_centerx - roadrunner_text_1.get_rect().width/2)
+
+    while True:
+
+        # Getting mouse data
+        mouse_pos = pygame.mouse.get_pos()
+
+        screen.fill(BLACK)
+
+        # Drawing text for each set of buttons
+        
+        screen.blit(cowboy_text_1, (cowboy_button_centerx - cowboy_text_1.get_rect().width/2, 300))
+        screen.blit(cowboy_text_2, (cowboy_button_centerx - cowboy_text_2.get_rect().width/2, 350))
+        screen.blit(cowboy_text_3, (cowboy_button_centerx - cowboy_text_3.get_rect().width/2, 400))
+        screen.blit(cowboy_text_4, (cowboy_button_centerx - cowboy_text_4.get_rect().width/2, 450))
+        screen.blit(cowboy_text_5, (cowboy_button_centerx - cowboy_text_5.get_rect().width/2, 500))
+
+        screen.blit(ninja_text_1, (ninja_button_centerx - ninja_text_1.get_rect().width/2, 300))
+        screen.blit(ninja_text_2, (ninja_button_centerx - ninja_text_2.get_rect().width/2, 350))
+        screen.blit(ninja_text_3, (ninja_button_centerx - ninja_text_3.get_rect().width/2, 400))
+        screen.blit(ninja_text_4, (ninja_button_centerx - ninja_text_4.get_rect().width/2, 450))
+        screen.blit(ninja_text_5, (ninja_button_centerx - ninja_text_5.get_rect().width/2, 500))
+
+        screen.blit(roadrunner_text_1, (roadrunner_button_centerx - roadrunner_text_1.get_rect().width/2, 300))
+        screen.blit(roadrunner_text_2, (roadrunner_button_centerx - roadrunner_text_2.get_rect().width/2, 350))
+        screen.blit(roadrunner_text_3, (roadrunner_button_centerx - roadrunner_text_3.get_rect().width/2, 400))
+        screen.blit(roadrunner_text_4, (roadrunner_button_centerx - roadrunner_text_4.get_rect().width/2, 450))
+        screen.blit(roadrunner_text_5, (roadrunner_button_centerx - roadrunner_text_5.get_rect().width/2, 500))
+
+        # Check for hover
+        for button in playermenu_buttons:
+            button.draw(screen, mouse_pos)
+        pygame.display.flip()
+        # Check for clicking
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # Cycle through the buttons that can be clicked -> perform their action
+                if back_button.is_clicked(mouse_pos):
+                    main_menu()
+                elif player_1_button.is_clicked(mouse_pos):
+                    play(0)
+                elif player_2_button.is_clicked(mouse_pos):
+                    play(1)
+                elif player_3_button.is_clicked(mouse_pos):
+                    play(2)
+
+
+        clock.tick(60)
+
 def quit():
     pygame.quit()
     Scoreboard.export()
@@ -548,7 +650,7 @@ def main_menu():
                 # Cycle through the buttons that can be clicked -> perform their action
                 if play_button.is_clicked(mouse_pos):
                     MusicManager.play_soundfx(menuclick)
-                    play()
+                    player_select()
                 if options_button.is_clicked(mouse_pos):
                     MusicManager.play_soundfx(menuclick)
                     options()

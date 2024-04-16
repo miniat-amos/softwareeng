@@ -8,8 +8,8 @@ import Projectile
 from MusicManager import MusicManager
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
-    def __init__(self, texture_folder:str, player_projectile_list, map, attack_cooldown, speed):
-        super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    speed)
+    def __init__(self, texture_folder:str, player_projectile_list, map, health, attack_cooldown, speed):
+        super().__init__(   texture_folder, map,    (10,10),  (400,400),  health,    speed)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
         self.inventory = Inventory.Inventory()
@@ -155,7 +155,7 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
 
 class Cowboy(Player):
     def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.COWBOY_ATTACK_COOLDOWN):
-        super().__init__(SETTINGS.COWBOY_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.COWBOY_SPEED)
+        super().__init__(SETTINGS.COWBOY_FOLDER, player_projectile_list, map, SETTINGS.COWBOY_HEALTH, attack_cooldown, SETTINGS.COWBOY_SPEED)
         self.projectile_image = SETTINGS.COWBOY_FOLDER + "projectile.png"
         self.projectile_piercing = True
         self.projectile_sound = SETTINGS.COWBOY_PROJECTILE_SOUND
@@ -167,7 +167,7 @@ class Cowboy(Player):
 
 class Ninja(Player):
     def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.NINJA_ATTACK_COOLDOWN):
-        super().__init__(SETTINGS.NINJA_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.NINJA_SPEED)
+        super().__init__(SETTINGS.NINJA_FOLDER, player_projectile_list, map, SETTINGS.NINJA_HEALTH, attack_cooldown, SETTINGS.NINJA_SPEED)
         self.projectile_image = SETTINGS.NINJA_FOLDER + "projectile.png"
         self.projectile_piercing = False
         self.projectile_sound = SETTINGS.NINJA_PROJECTILE_SOUND
@@ -179,7 +179,7 @@ class Ninja(Player):
 
 class Roadrunner(Player):
     def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.ROADRUNNER_ATTACK_COOLDOWN):
-        super().__init__(SETTINGS.ROADRUNNER_FOLDER, player_projectile_list, map, attack_cooldown, SETTINGS.ROADRUNNER_SPEED)
+        super().__init__(SETTINGS.ROADRUNNER_FOLDER, player_projectile_list, map, SETTINGS.ROADRUNNER_HEALTH, attack_cooldown, SETTINGS.ROADRUNNER_SPEED)
         self.projectile_image = SETTINGS.ROADRUNNER_FOLDER + "projectile.png"
         self.projectile_piercing = False
         self.projectile_sound = SETTINGS.ROADRUNNER_PROJECTILE_SOUND
