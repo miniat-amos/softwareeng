@@ -130,6 +130,9 @@ def play(player_type:int):
         player = Player.Ninja(player_projectile_list)
     elif(player_type == 2):
         player = Player.Roadrunner(player_projectile_list)
+    else:
+        print("Error - invalid player index value")
+        quit()
 
     # Create UI
     ui = UI(player)
