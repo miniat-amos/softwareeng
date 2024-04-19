@@ -1,10 +1,19 @@
+import math
+
+### NOTE: Some values are set to 0 by default because they will be properly calculated in RECALC()
+
+# User settings (Each range 1~10)
+CFG_LIGHTING_DIFFICULTY = 10
+CFG_ENEMY_RATE = 10
+CFG_ENEMY_STRENGTH = 1
+
+SCORE_SCALE = 0
+
+
+# Main settings
 WIDTH = 800
 HEIGHT = 720
 FRAMERATE = 60
-LOOT_TEXTURE_FOLDER = "assets/sprites/loot/"
-MIN_LOOT_PER_ROOM = 5
-MAX_LOOT_PER_ROOM = 5
-COIN_PICKUP_SOUND = "assets/sounds/loot/item_pickup.wav"
 
 
 # Might not get used in the final version, I just wanted to be able to hear my music when testing lmao
@@ -16,10 +25,15 @@ VOL_MUSIC = 0.1
 WR_WIDTH = 200
 SCALE = WIDTH/WR_WIDTH
 WR_HEIGHT = round(WR_WIDTH * (HEIGHT / WIDTH))
-WR_TILE_COUNT = 8
+
+WR_TILE_COUNT = 4
 WR_TILE_HEIGHT = 100
-ENEMY_SUMMONER_ANGLE_CHANGE = 0.01
-ENEMY_SUMMONER_CIRCLE_RADIUS = 50
+
+BUILDING_EMPTY_RATE = 0
+
+MIN_LOOT_PER_ROOM = 5
+MAX_LOOT_PER_ROOM = 5
+
 
 #Player settings
 COWBOY_SPEED = 1
@@ -53,6 +67,20 @@ ROADRUNNER_ATTACK_COOLDOWN = 30
 PLAYER_IFRAMES = 60
 ENEMY_IFRAMES = 15
 
+
+# Loot settings
+LOOT_SIZE_SMALL = (8,8)
+LOOT_SIZE_MEDIUM = (16,16)
+LOOT_SIZE_LARGE = (16,16)
+
+LOOT_VALUE_SMALL = 10
+LOOT_VALUE_MEDIUM = 30
+LOOT_VALUE_LARGE = 100
+
+LOOT_TEXTURE_FOLDER = "assets/sprites/loot/"
+COIN_PICKUP_SOUND = "assets/sounds/loot/item_pickup.wav"
+
+
 #Enemy settings
 ENEMY_DEFAULT_SPEED = 1
 MELEE_ENEMY_ATTACK_SOUND = "assets/sounds/entities/enemies/melee/melee_attack_hit.ogg"
@@ -70,18 +98,21 @@ ENEMY_MELEE_COOLDOWN = 60
 ENEMY_RANGED_COOLDOWN = 100
 ENEMY_SUMMONER_COOLDOWN = 50
 
+ENEMY_MELEE_PCT_SPAWN = 0
+ENEMY_RANGED_PCT_SPAWN = 0
+ENEMY_SUMMONER_PCT_SPAWN = 0
+ENEMY_SPAWN_RATE = 0
+
 SILENCE_SOUND = "assets/sounds/entities/enemies/default/silence_1sec.wav"
 
+LIGHTNING_DEFAULT_SPEED = 0
+LIGHTNING_DAMAGE = 0
+LIGHTNING_SPAWN_RATE = 0
 LIGHTNING_INERTIA_RANGE_MIN = 0.1
 LIGHTNING_INERTIA_RANGE_MAX = 0.2
 
-LOOT_SIZE_SMALL = (8,8)
-LOOT_SIZE_MEDIUM = (16,16)
-LOOT_SIZE_LARGE = (16,16)
-
-LOOT_VALUE_SMALL = 10
-LOOT_VALUE_MEDIUM = 100
-LOOT_VALUE_LARGE = 1000
+ENEMY_SUMMONER_ANGLE_CHANGE = 0.01
+ENEMY_SUMMONER_CIRCLE_RADIUS = 50
 
 
 # Scoreboard settings
@@ -96,3 +127,53 @@ CT_BORDER_COLOR = (0,192,255,255)
 SB_TEXT_COLOR = (255,255,255)
 HD_TEXT_COLOR = SB_TEXT_COLOR
 CT_TEXT_COLOR = SB_TEXT_COLOR
+
+
+# Recalculate any values that may change
+def RECALC():
+	global SCALE, WR_HEIGHT, BUILDING_EMPTY_RATE,\
+		LIGHTNING_DEFAULT_SPEED, LIGHTNING_DAMAGE, LIGHTNING_SPAWN_RATE,\
+		ENEMY_MELEE_PCT_SPAWN, ENEMY_RANGED_PCT_SPAWN, ENEMY_SUMMONER_PCT_SPAWN,\
+		ENEMY_MELEE_HEALTH, ENEMY_RANGED_HEALTH, ENEMY_SUMMONER_HEALTH,\
+		ENEMY_SPAWN_RATE,\
+		COWBOY_HEALTH, NINJA_HEALTH, ROADRUNNER_HEALTH
+	
+	# World scale
+	SCALE = WIDTH/WR_WIDTH
+	WR_HEIGHT = round(WR_WIDTH * (HEIGHT / WIDTH))
+	BUILDING_EMPTY_RATE = int(CFG_LIGHTING_DIFFICULTY/3 + 1)
+ 
+	# Score multiplier or loot values
+ 
+	# Lighting default settings
+	LIGHTNING_DEFAULT_SPEED = math.sqrt((CFG_LIGHTING_DIFFICULTY + 5)) / 8
+	LIGHTNING_DAMAGE = int(10 + 10*math.sqrt(CFG_LIGHTING_DIFFICULTY / 5))
+	LIGHTNING_SPAWN_RATE = 2*FRAMERATE / math.sqrt(CFG_LIGHTING_DIFFICULTY)
+ 
+	# Rate of building spanws
+	
+ 
+	# Rate of enemy spawns
+	ENEMY_MELEE_PCT_SPAWN = (20-CFG_ENEMY_RATE) * 4
+	ENEMY_RANGED_PCT_SPAWN = max(
+		100-ENEMY_MELEE_PCT_SPAWN,
+		(10-CFG_ENEMY_RATE) * 4
+	)
+	ENEMY_SUMMONER_PCT_SPAWN = max(0, 100-ENEMY_MELEE_PCT_SPAWN-ENEMY_RANGED_PCT_SPAWN)
+
+	ENEMY_SPAWN_RATE = FRAMERATE / math.sqrt(2*CFG_ENEMY_RATE-1)
+ 
+	# Health of enemies/player
+	enemy_health_scale = (CFG_ENEMY_STRENGTH + 5) / 10
+	player_health_div = math.sqrt((CFG_ENEMY_STRENGTH + 2) / 10)
+
+	ENEMY_MELEE_HEALTH = int(50 * enemy_health_scale)
+	ENEMY_RANGED_HEALTH = int(30 * enemy_health_scale)
+	ENEMY_SUMMONER_HEALTH = int(125 * enemy_health_scale)
+
+	COWBOY_HEALTH = int(100 / player_health_div)
+	NINJA_HEALTH = int(125 / player_health_div)
+	ROADRUNNER_HEALTH = int(75 / player_health_div)
+	pass
+
+RECALC()

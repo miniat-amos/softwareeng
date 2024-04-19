@@ -10,7 +10,7 @@ from Collision import StaticCollidable
 from Camera import Camera
 import random
 from Player import Player
-import Loot
+from Loot import Loot
 import SETTINGS
 #import StaticMusicManager
 import Collision
@@ -86,6 +86,10 @@ class Map(StaticCollidable):
 
 	def getRoom(self, index:int):
 		return self.__room_list[index]
+	
+	# Returns the total number of generated rooms
+	def getRoomCount(self):
+		return self.__room_gen_count
 
 
 	# Tick functions are run every frame and have no parameters
@@ -233,7 +237,7 @@ class Room(StaticCollidable):
 			self.tile_list.append(tile)
 			pass
 	
-		self.loot_list:list[Loot.Loot] = []
+		self.loot_list:list[Loot] = []
 
 		i:int = 0
 		while (i < random.randint(SETTINGS.MIN_LOOT_PER_ROOM, SETTINGS.MAX_LOOT_PER_ROOM)):
@@ -241,13 +245,13 @@ class Room(StaticCollidable):
 			pos:tuple[int,int] = [random.randint(self.get_rect().left, self.get_rect().right), random.randint(self.get_rect().top, self.get_rect().bottom)]
 			long_val = random.randint(1,100)
 			if (long_val <= 10):
-				val = SETTINGS.LOOT_VALUE_LARGE
+				size = Loot.LARGE
 			elif (long_val <= 50):
-				val = SETTINGS.LOOT_VALUE_MEDIUM
+				size =  Loot.MEDIUM
 			else:
-				val = SETTINGS.LOOT_VALUE_SMALL
+				size = Loot.SMALL
 			# Note: loot value must currently be 10, 100, or 1000
-			l = Loot.Loot(pos, val)
+			l = Loot(pos, size)
 			if (self.collision_boolean(l)):
 				pass
 			else:
@@ -318,8 +322,8 @@ class Tile(StaticCollidable):
 		super().__init__()
 		self.set_rect(Rect(0, top_y, WIDTH, TILE_HEIGHT))
 
-		self.building_left = Building(self.get_rect(), random.randint(-1, Building.TYPE_COUNT-1), True)
-		self.building_right = Building(self.get_rect(), random.randint(-1, Building.TYPE_COUNT-1), False)
+		self.building_left = Building(self.get_rect(), random.randint(-SETTINGS.BUILDING_EMPTY_RATE, Building.TYPE_COUNT-1), True)
+		self.building_right = Building(self.get_rect(), random.randint(-SETTINGS.BUILDING_EMPTY_RATE, Building.TYPE_COUNT-1), False)
 
 	# Fills render group with all tile objects
 	def fillRenderGroup(self, render_group:Rendergroup):

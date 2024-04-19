@@ -18,10 +18,11 @@ def setMap(the_map:Map.Map):
     MAP = the_map
 
 class Lightning(Entity.Entity):
+    speed = SETTINGS.LIGHTNING_DEFAULT_SPEED
     #MAP = None
 
     def __init__(self, folder:str, pos:tuple[int,int], time):
-        super().__init__(   folder+"target.png",    (8,8),  pos,        100,    0.8)
+        super().__init__(   folder+"target.png",    (8,8),  pos,        100,    Lightning.speed)
         #                   ^ img file              ^ size      ^start pos  ^health ^speed
         #self.surface.set_alpha(196)
         self.folder = folder
@@ -53,7 +54,7 @@ class Lightning(Entity.Entity):
 
         if (do_player_damage):
             if (self.get_rect().colliderect(player.get_rect())):
-                player.damage(20)
+                player.damage(SETTINGS.LIGHTNING_DAMAGE)
         
         self.surface = pygame.image.load(self.folder + "bolt.png")
         MusicManager.play_soundfx("assets/sounds/entities/enemies/lightning/static_zap.wav")

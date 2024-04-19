@@ -172,7 +172,9 @@ def play(player_type:int):
 
     i = PRINT_RATE
 
-    current_frame = 0
+    # current_frame = 0
+    lighting_spawn_frame = SETTINGS.LIGHTNING_SPAWN_RATE
+    enemy_spawn_frame = SETTINGS.ENEMY_SPAWN_RATE
 
     pre_screen = pygame.Surface((SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT))
 
@@ -290,12 +292,10 @@ def play(player_type:int):
                 o_pressed = False
 
             # Spawn new lightning bolts
-            current_frame += 1
-            if (current_frame == FRAME_RATE):	
-                current_frame = 0				# once per second:
-                newr = random.randrange(0,5,1)		# 20% random chance to
-                print(newr)
-                if (newr == 0):						# spawn new lightning (with 5 second duration)
+            if (lighting_spawn_frame <= 0):	
+                lighting_spawn_frame = SETTINGS.ENEMY_SPAWN_RATE
+                newr = random.randrange(0,150,1)
+                if (newr < math.sqrt(player.points)+15):						# spawn new lightning (with 5 second duration)
                     l_x = random.randrange(0,SETTINGS.WR_WIDTH, 1)
                     if (player.direction_y == "up"):
                         l_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
@@ -305,11 +305,12 @@ def play(player_type:int):
                                     (l_x, l_y), FRAME_RATE * 5)
                     lightning_bolt_list.append(newl)
 
+            
             # Spawn new enemies
-            if (current_frame == math.floor(FRAME_RATE/2)):	
-                # once per second:
-                newr = random.randrange(0,3,1)		# 1/6 random chance to
-                if (newr == 0):						# spawn new enemy
+            if (enemy_spawn_frame <= 0):	
+                enemy_spawn_frame = SETTINGS.ENEMY_SPAWN_RATE
+                newr = random.randrange(0, 64, 1)
+                if (newr < math.sqrt(map.getRoomCount())):
                     enemy_type = random.randrange(1,100,1)
                     newe:Enemies.Enemy
                     position_good:bool = False
@@ -319,9 +320,9 @@ def play(player_type:int):
                         e_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                         #else:
                         #    e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
-                        if (enemy_type <= 50):
+                        if (enemy_type <= SETTINGS.ENEMY_MELEE_PCT_SPAWN):
                             newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y))
-                        elif (enemy_type <= 85):
+                        elif (enemy_type <= SETTINGS.ENEMY_RANGED_PCT_SPAWN+SETTINGS.ENEMY_MELEE_PCT_SPAWN):
                             newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), enemy_projectile_list)
                         else:
                             newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), lightning_bolt_list)
@@ -414,7 +415,8 @@ def play(player_type:int):
                 i = PRINT_RATE
 
                 
-                
+            lighting_spawn_frame -= 1
+            enemy_spawn_frame -= 1
             # Cap the frame rate
             clock.tick(FRAME_RATE)
 
