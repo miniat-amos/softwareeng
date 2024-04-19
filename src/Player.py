@@ -9,7 +9,7 @@ from MusicManager import MusicManager
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     def __init__(self, texture_folder:str, player_projectile_list, health, attack_cooldown, speed):
-        super().__init__(   texture_folder, None,    (10,10),  (400,400),  health,    speed)
+        super().__init__(   texture_folder, None,    (10,10),  (400,400),  health,    speed, SETTINGS.PLAYER_IFRAMES)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
         self.inventory = Inventory.Inventory()
@@ -90,9 +90,6 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
 
     def ranged_attack(self):
         if (pygame.mouse.get_pressed()[0] and self.attack_cooldown == 0):
-            print(pygame.mouse.get_pos()[0] + self.camera.render_area.left, 
-                  SETTINGS.SCALE*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1]) , 
-                  self.pos)
             cy = SETTINGS.SCALE*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1])
             cx = pygame.mouse.get_pos()[0] + self.camera.render_area.left
             xdiff = cx - SETTINGS.SCALE * self.x
@@ -106,15 +103,16 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
                 angle = math.degrees(math.atan((ydiff) / (xdiff)))
             if (xdiff < 0): angle += 180
             newp = Projectile.Projectile(self.projectile_image, (10,10), 
-                                         (self.pos[0] + 3, self.pos[1] + 3),
+                                         (self.pos[0], self.pos[1]-3),
                                          1, self.projectile_speed, 20, angle, self.projectile_piercing)
+            newp.tex_offset = (0,0)
             self.projectile_list.append(newp)
             MusicManager.play_soundfx(self.projectile_sound, 0.5)
             self.attack_cooldown = self.attack_cooldown_max
 
     def button_functions(self):
         if (pygame.key.get_pressed()[pygame.K_z]):
-            self.add_points(10)
+            self.add_points(100)
             print(self.points)
         if (pygame.key.get_pressed()[pygame.K_x]):
             self.remove_points(10)

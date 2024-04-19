@@ -23,7 +23,6 @@ from datetime import datetime
 from MusicManager import MusicManager #TEMP DELETE AFTER FIXING STATIC
 
 FRAME_RATE = SETTINGS.FRAMERATE
-PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
 
 # Only used to display stuff without a camera class. Should be (0,0) when camera is used. 
 # DRAW_OFFSET = (200, 500)
@@ -117,6 +116,7 @@ buttons = [play_button, options_button, quit_button, scoreboard_button]
 
 
 def play(player_type:int):
+    SETTINGS.RECALC()
 
     gameover_ticks = 0
     gameover_delay = 200
@@ -150,7 +150,6 @@ def play(player_type:int):
     # Render distance should be set to (screen height / 2) normally
     map = Map(camera, render_group, 4, 60)
     map.setStartPosOf(player)
-    print(player.pos)
 
     player.map = map
 
@@ -159,18 +158,6 @@ def play(player_type:int):
     lightning_bolt_list:list[Lightning.Lightning] = []
     enemy_list:list[Enemies.Enemy] = []
     enemy_projectile_list:list[Projectile.Projectile] = []
-
-    l_pressed = False
-    p_pressed = False
-    k_pressed = False
-    left_bracket_pressed = False
-    right_bracket_pressed = False
-    loot_list:list[Loot.Loot] = []
-
-    l_pressed = False
-    o_pressed = False
-
-    i = PRINT_RATE
 
     # current_frame = 0
     lighting_spawn_frame = SETTINGS.LIGHTNING_SPAWN_RATE
@@ -186,13 +173,36 @@ def play(player_type:int):
             if event.type == pygame.QUIT:
                 running = False
             MusicManager.master_volume_game_change(event)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    MusicManager.play_soundfx(testsound)
-                if event.key == pygame.K_o:
-                    MusicManager.play_song(menu, True)
-                if event.key == pygame.K_i:
-                    MusicManager.play_song(maingame, True)
+            if (SETTINGS.USE_DEBUG):
+                if event.type == pygame.KEYDOWN:
+                    # Music
+                    if event.key == pygame.K_p:
+                        MusicManager.play_soundfx(testsound)
+                    if event.key == pygame.K_o:
+                        MusicManager.play_song(menu, True)
+                    if event.key == pygame.K_i:
+                        MusicManager.play_song(maingame, True)
+                    # Enemies
+                    if event.key == pygame.K_KP7:
+                        newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT))
+                        enemy_list.append(newe)
+                    if event.key == pygame.K_KP_8:
+                        newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT),enemy_projectile_list)
+                        enemy_list.append(newe)
+                    if event.key == pygame.K_KP9:
+                        newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), lightning_bolt_list)
+                        enemy_list.append(newe)
+                    if event.key == pygame.K_KP4:
+                        newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/", (player.x, player.top-SETTINGS.WR_HEIGHT))
+                        lightning_bolt_list.append(newl)
+                    if event.key == pygame.K_KP0:
+                        lightning_bolt_list.clear()
+                        enemy_list.clear()
+                        
+                    # Other
+                    if event.key == pygame.K_KP5:
+                        newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 1, 1, 20, random.randint(0,359))
+                        enemy_projectile_list.append(newp)
 
         # Check for game over
         if player.health <= 0 and not dying:
@@ -203,9 +213,6 @@ def play(player_type:int):
             dying = True
 
         if dying:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
             diescreen = pygame.Surface((SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT))
             diescreen.fill(BLACK)
             render_group.appendTo(player, 3)
@@ -231,78 +238,27 @@ def play(player_type:int):
         
         # Not dying
         else:
-            # Event handling
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                MusicManager.master_volume_game_change(event)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        MusicManager.play_soundfx(testsound, 1)
-                    if event.key == pygame.K_o:
-                        MusicManager.play_song(menu, True, 0.5)
-                    if event.key == pygame.K_i:
-                        MusicManager.play_song(maingame, True, 0.5)
 
-            if (pygame.key.get_pressed()[pygame.K_l]):
-                if (l_pressed == False):
-                    newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/", (player.x, player.top-SETTINGS.WR_HEIGHT), FRAME_RATE * 5)
-                    lightning_bolt_list.append(newl)
-                l_pressed = True
-            else:
-                l_pressed = False
-
-            if (pygame.key.get_pressed()[pygame.K_p]):
-                if (p_pressed == False):
-                    newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 1, 1, 20, random.randint(0,359))
-                    enemy_projectile_list.append(newp)
-                p_pressed = True
-            else:
-                p_pressed = False
-
-            if (pygame.key.get_pressed()[pygame.K_k]):
-                if (k_pressed == False):
-                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT))
-                    enemy_list.append(newe)
-                k_pressed = True
-            else:
-                k_pressed = False
-            if (pygame.key.get_pressed()[pygame.K_LEFTBRACKET]):
-                if (left_bracket_pressed == False):
-                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT),enemy_projectile_list)
-                    enemy_list.append(newe)
-                left_bracket_pressed = True
-            else:
-                left_bracket_pressed = False
-
-            if (pygame.key.get_pressed()[pygame.K_RIGHTBRACKET]):
-                if (right_bracket_pressed == False):
-                    newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), lightning_bolt_list)
-                    enemy_list.append(newe)
-                right_bracket_pressed = True
-            else:
-                right_bracket_pressed = False
-
-            if (pygame.key.get_pressed()[pygame.K_o]):
-                if (o_pressed == False):
-                    newc = Loot.Loot((player.rect.centerx, player.rect.top-100), 10)
-                    loot_list.append(newc)
-                o_pressed = True
-            else:
-                o_pressed = False
+            if (SETTINGS.USE_DEBUG): player.button_functions()
 
             # Spawn new lightning bolts
-            if (lighting_spawn_frame <= 0):	
-                lighting_spawn_frame = SETTINGS.ENEMY_SPAWN_RATE
+            if (lighting_spawn_frame <= 0):
+                Lightning.Lightning.updateStats(player)
+                lighting_spawn_frame = SETTINGS.LIGHTNING_SPAWN_RATE
+                # Random chance to spawn
                 newr = random.randrange(0,150,1)
-                if (newr < math.sqrt(player.points)+15):						# spawn new lightning (with 5 second duration)
+                if (newr < math.sqrt(player.points)/2+15):
+                    # Get random x position
                     l_x = random.randrange(0,SETTINGS.WR_WIDTH, 1)
+                    # Get random y positon
+                    offset = random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                     if (player.direction_y == "up"):
-                        l_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                        l_y = player.yi - offset
                     else:
-                        l_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                        l_y = player.yi +offset
+                    # Spawn lighting bolt
                     newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/",
-                                    (l_x, l_y), FRAME_RATE * 5)
+                                    (l_x, l_y))
                     lightning_bolt_list.append(newl)
 
             
@@ -339,8 +295,6 @@ def play(player_type:int):
 
             # Object updates
             player.update()
-            #player.set_points_increase_only(-player.y)
-            player.button_functions() # Functions for player values
             map.collide_loot(player)
             map.tick() # Update map	
             
@@ -389,10 +343,6 @@ def play(player_type:int):
             # Rendering
             map.fillRendergroup(render_group)
             render_group.appendTo(player, 3)
-            for lo in loot_list:
-            #render_group.appendTo(lo, 2)   this doesn't seem to work but it renders properly in Map
-                if (lo.update(player)) == True:
-                    loot_list.remove(lo)
             render_group.render(pre_screen, camera) # Render everything within the render group
 
             pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)
@@ -405,14 +355,6 @@ def play(player_type:int):
 
             # Rendering cleanup
             render_group.clearAll()
-            
-            i -= 1
-            
-            if i < 1:
-                # print(map.getStats())
-                # print(clock.get_fps())
-                # print("Player Health =", player.health)
-                i = PRINT_RATE
 
                 
             lighting_spawn_frame -= 1
@@ -590,7 +532,6 @@ def scoreboard(default_score:Score = False):
 
     if default_score:
         sb.setDefaultIndex(default_score)
-        print("Set default score", sb.default_indices)
     
     while True:
         # Event handling

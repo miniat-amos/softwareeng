@@ -205,9 +205,12 @@ class Porch(Renderable):
 			render_group.appendOnGround(self)
 			render_group.appendRoof(self.roof)
 
-	# Damages roof due to lighting strike - Returns true if lighting damages
+	# Damages roof due to lighting strike - Returns true if lighting damages roof (and not player)
 	def lightingStrike(self, strike_hb:Rect) -> bool:
+		if self.isEmpty: return False
 		if self.burn_state < 2 and self.get_rect().colliderect(strike_hb):
+			print("Struck roof")
+			print(strike_hb.topleft, strike_hb.bottomright, " || ", self.get_rect().topleft, self.get_rect().bottomright)
 			self.burn_state += 1
 			self.roof_state = 1+self.burn_state
 			self.roof_state_trans = self.roof_state+3 # Can probably just increment all 3 instead, but eh

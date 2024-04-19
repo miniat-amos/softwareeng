@@ -13,7 +13,6 @@ class Projectile(Entity.Entity):
         self.piercing = piercing
         self.currently_damaging = False
         self.starting_image:pygame.Surface = self.surface
-        self.tex_offset = [-3,-6]
         self.speed = speed
 
     def damage_check(self, target:Renderable.Renderable):

@@ -46,6 +46,7 @@ class Enemy(Entity.GroundEntity):
                 if (xdiff < 0): angle += 180
                 newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), self.pos, 1, 1.5, self.attack_damage,
                                              angle)
+                newp.tex_offset = (0,0)
                 self.enemy_projectile_list.append(newp)
                 MusicManager.play_soundfx("assets/sounds/entities/enemies/ranger/fire.wav")
                 self.attack_cooldown = self.attack_cooldown_max
@@ -55,7 +56,7 @@ class Enemy(Entity.GroundEntity):
         if (self.attack_cooldown == 0):
             if player.alive:
                 newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/",
-                                (self.xi, self.yi), SETTINGS.FRAMERATE * 5)
+                                (self.xi, self.yi))
                 self.lightning_bolt_list.append(newl)
                 self.attack_cooldown = self.attack_cooldown_max
 

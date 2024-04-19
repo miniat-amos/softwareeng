@@ -98,8 +98,8 @@ class Entity(Renderable.Renderable):
 # For entities that walk around on the ground. 
 # They can face is the 4 cardinal direcitons, and need to check collisions with the map. 
 class GroundEntity(Entity):
-    def __init__(self, texture_folder, map, size, pos, health, speed:float):
-        super().__init__(texture_folder+"down.png", size, pos, health, speed)
+    def __init__(self, texture_folder, map, size, pos, health, speed:float, iframes:int = 1):
+        super().__init__(texture_folder+"down.png", size, pos, health, speed, iframes)
         self.texture_folder = texture_folder
         self.map:StaticCollidable = map
         self.direction_y = "down"
