@@ -113,6 +113,14 @@ class Building(Collision.StaticCollidable):
 			if not self.isEmpty:
 				self.roof.bottomright = self.topright
 
+		# Vertical randomness (Must happen before porch creation)
+		vroom = tile_rect.height - self.height
+		if vroom > 0:
+			move = random.randint(0,vroom)
+			# Move main building AND roof
+			self.bottom -= move
+			self.roof.bottom -= move
+
 		self.porch = Porch(self.get_rect(), type, facing_right)
 
 	# Checks player-related things like roof visibility
@@ -209,8 +217,6 @@ class Porch(Renderable):
 	def lightingStrike(self, strike_hb:Rect) -> bool:
 		if self.isEmpty: return False
 		if self.burn_state < 2 and self.get_rect().colliderect(strike_hb):
-			print("Struck roof")
-			print(strike_hb.topleft, strike_hb.bottomright, " || ", self.get_rect().topleft, self.get_rect().bottomright)
 			self.burn_state += 1
 			self.roof_state = 1+self.burn_state
 			self.roof_state_trans = self.roof_state+3 # Can probably just increment all 3 instead, but eh

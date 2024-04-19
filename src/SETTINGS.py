@@ -5,7 +5,7 @@ import math
 USE_DEBUG = True
 
 # User settings (Each range 1~10)
-CFG_LIGHTING_DIFFICULTY = 10
+CFG_LIGHTING_DIFFICULTY = 1
 CFG_ENEMY_RATE = 1
 CFG_ENEMY_STRENGTH = 1
 
@@ -31,7 +31,7 @@ WR_HEIGHT = round(WR_WIDTH * (HEIGHT / WIDTH))
 WR_TILE_COUNT = 16
 WR_TILE_HEIGHT = 60
 
-BUILDING_EMPTY_RATE = 0
+BUILDINGS_PER_ROOM = 0
 
 MIN_LOOT_PER_ROOM = 5
 MAX_LOOT_PER_ROOM = 5
@@ -134,7 +134,7 @@ CT_TEXT_COLOR = SB_TEXT_COLOR
 
 # Recalculate any values that may change
 def RECALC():
-	global SCALE, WR_HEIGHT, BUILDING_EMPTY_RATE,\
+	global SCALE, WR_HEIGHT, BUILDINGS_PER_ROOM,\
 		LIGHTNING_DEFAULT_SPEED, LIGHTNING_DAMAGE, LIGHTNING_SPAWN_RATE,\
 		ENEMY_MELEE_PCT_SPAWN, ENEMY_RANGED_PCT_SPAWN, ENEMY_SUMMONER_PCT_SPAWN,\
 		ENEMY_MELEE_HEALTH, ENEMY_RANGED_HEALTH, ENEMY_SUMMONER_HEALTH,\
@@ -144,7 +144,6 @@ def RECALC():
 	# World scale
 	SCALE = WIDTH/WR_WIDTH
 	WR_HEIGHT = round(WR_WIDTH * (HEIGHT / WIDTH))
-	BUILDING_EMPTY_RATE = 2 # int(CFG_LIGHTING_DIFFICULTY/3 + 1)
  
 	# Score multiplier or loot values
  
@@ -154,7 +153,8 @@ def RECALC():
 	LIGHTNING_SPAWN_RATE = 2*FRAMERATE / math.pow(CFG_LIGHTING_DIFFICULTY, 1/3)
  
 	# Rate of building spanws
-	
+	buildings_per_tile = (20 - CFG_LIGHTING_DIFFICULTY) / 10
+	BUILDINGS_PER_ROOM = int(WR_TILE_COUNT * buildings_per_tile)
  
 	# Rate of enemy spawns
 	ENEMY_MELEE_PCT_SPAWN = (19-CFG_ENEMY_RATE) * 4
@@ -176,7 +176,6 @@ def RECALC():
 
 	COWBOY_HEALTH = int(100 / player_health_div)
 	NINJA_HEALTH = int(125 / player_health_div)
-	ROADRUNNER_HEALTH = int(75 / player_health_div)
-	pass
+	ROADRUNNER_HEALTH = int(60 / player_health_div)
 
 RECALC()
