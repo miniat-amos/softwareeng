@@ -122,5 +122,5 @@ class Lightning(Entity.Entity):
 
         Lightning.speed = min(
             SETTINGS.LIGHTNING_MAX_SPEED, # Sets a maximum on the speed
-            SETTINGS.LIGHTNING_DEFAULT_SPEED + math.sqrt(player.points) / 128
+            SETTINGS.LIGHTNING_DEFAULT_SPEED + math.sqrt(player.points) / (16*(2+math.sqrt(SETTINGS.SCORE_MULTIPLIER)))
         )

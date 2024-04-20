@@ -58,18 +58,26 @@ music_gameover = 'assets/music/GameOver.mp3'
 sound_fadeaway = 'assets/sounds/fadeaway.mp3'
 temp_master_volume:float  #used to store master volume while it is muted in game over
 
-# Button setup
+### Button setup ##
+# Main menu
 menu_button_font = pygame.font.Font(None, 48)
 img_button_hover = pygame.image.load("assets/sprites/menu/Button_Hover.png")
 img_button = pygame.image.load("assets/sprites/menu/Button.png")
 img_button_hover_small = pygame.image.load("assets/sprites/menu/Button_Hover_Small.png")
 img_button_small = pygame.image.load("assets/sprites/menu/Button_Small.png")
+# Player buttons
 cowboy_button_image = pygame.image.load("assets/sprites/menu/cowboy_button.png")
 cowboy_button_image_hover = pygame.image.load("assets/sprites/menu/cowboy_button_hover.png")
 ninja_button_image = pygame.image.load("assets/sprites/menu/ninja_button.png")
 ninja_button_image_hover = pygame.image.load("assets/sprites/menu/ninja_button_hover.png")
 roadrunner_button_image = pygame.image.load("assets/sprites/menu/roadrunner_button.png")
 roadrunner_button_image_hover = pygame.image.load("assets/sprites/menu/roadrunner_button_hover.png")
+# Buttons
+play_button = Button(275, 300, img_button, img_button_hover, "Play", menu_button_font)
+options_button = Button(50, 475, img_button, img_button_hover, "Options", menu_button_font)
+quit_button = Button(505, 475, img_button, img_button_hover, "Quit", menu_button_font)
+back_button = Button(280, 600, img_button, img_button_hover, "Back", menu_button_font)
+scoreboard_button = Button(280, 600, img_button, img_button_hover, "Scoreboard", menu_button_font)
 
 # Logo
 logo_scale = .50
@@ -77,15 +85,21 @@ img_logo = pygame.image.load("assets/sprites/menu/logo.png")
 img_logo = pygame.transform.scale(img_logo, (int(img_logo.get_width() * logo_scale), int(img_logo.get_height() * logo_scale)))
 # Logo Text
 logo_font = pygame.font.Font(None, 65)
-textsurface_logo = logo_font.render("Lightning Bolt Town", True, (255, 255, 255))
+textsurface_logo = logo_font.render("Lightning Bolt Town", True, WHITE)
 
+# Difficulty options buttons
+difficulty = Button(0,0, img_button, img_button_hover, "Difficulty", menu_button_font)
+diff_enemystr_increase = Button(0,0, img_button_small, img_button_hover_small, "+", menu_button_font)
+diff_enemystr_decrease = Button(0,0, img_button_small, img_button_hover_small, "-", menu_button_font)
+diff_lighting_increase = Button(0,0, img_button_small, img_button_hover_small, "+", menu_button_font)
+diff_lighting_decrease = Button(0,0, img_button_small, img_button_hover_small, "-", menu_button_font)
+diff_enemyspwn_increase = Button(0,0, img_button_small, img_button_hover_small, "+", menu_button_font)
+diff_enemyspwn_decrease = Button(0,0, img_button_small, img_button_hover_small, "-", menu_button_font)
+difficulty_buttons = [diff_enemyspwn_decrease,diff_enemyspwn_increase,diff_lighting_decrease,diff_lighting_increase,diff_enemystr_decrease,diff_enemystr_increase,back_button]
 
-# Buttons
-play_button = Button(275, 300, img_button, img_button_hover, "Play", menu_button_font)
-options_button = Button(50, 475, img_button, img_button_hover, "Options", menu_button_font)
-quit_button = Button(505, 475, img_button, img_button_hover, "Quit", menu_button_font)
-back_button = Button(280, 600, img_button, img_button_hover, "Back", menu_button_font)
-scoreboard_button = Button(280, 600, img_button, img_button_hover, "Scoreboard", menu_button_font)
+diff_lighting_text = menu_button_font.render("Lighting", True, WHITE)
+diff_enemyspwn_text = menu_button_font.render("Enemy Count", True, WHITE)
+diff_enemystr_text = menu_button_font.render("Enemy Strength", True, WHITE)
 
 # Options menu buttons
 volbutton_x1 = 150
@@ -112,7 +126,7 @@ player_3_button = Button(player_3_button_x, player_button_y, roadrunner_button_i
 
 playermenu_buttons = [player_1_button, player_2_button, player_3_button, back_button]
 
-buttons = [play_button, options_button, quit_button, scoreboard_button]
+buttons = [play_button, options_button, quit_button, scoreboard_button, difficulty]
 
 
 def play(player_type:int):
@@ -265,8 +279,8 @@ def play(player_type:int):
             # Spawn new enemies
             if (enemy_spawn_frame <= 0):	
                 enemy_spawn_frame = SETTINGS.ENEMY_SPAWN_RATE
-                newr = random.randrange(0, 64, 1)
-                if (newr < math.sqrt(map.getRoomCount())):
+                newr = random.randrange(0, 180, 1)
+                if (newr < map.getRoomCount()*math.sqrt(SETTINGS.CFG_ENEMY_RATE)):
                     enemy_type = random.randrange(1,100,1)
                     newe:Enemies.Enemy
                     position_good:bool = False
@@ -606,6 +620,10 @@ def main_menu():
                 if scoreboard_button.is_clicked(mouse_pos):
                     MusicManager.play_soundfx(menuclick)
                     scoreboard()
+                if difficulty.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    change_difficulty()
+
                 
 
         pygame.display.flip()
@@ -676,6 +694,120 @@ def game_over(score:int, date:datetime):
     pygame.quit()
     sys.exit()
 
+def change_difficulty():
+    y_top = 120
+    y_spacing = 120
+    x_offset = 240
+    x_center = screen.get_width() // 2
+    bhw = diff_lighting_decrease.rect.width // 2
+    bh = diff_lighting_decrease.rect.height
+
+    diff_lighting_decrease.setPos(x_center-x_offset-bhw, y_top)
+    diff_lighting_increase.setPos(x_center+x_offset-bhw, y_top)
+    diff_enemyspwn_decrease.setPos(x_center-x_offset-bhw, y_top+y_spacing)
+    diff_enemyspwn_increase.setPos(x_center+x_offset-bhw, y_top+y_spacing)
+    diff_enemystr_decrease.setPos(x_center-x_offset-bhw, y_top+2*y_spacing)
+    diff_enemystr_increase.setPos(x_center+x_offset-bhw, y_top+2*y_spacing)
+
+    text_y_offset = (bh-diff_lighting_text.get_height()) // 2
+    lighting_text_x = x_center - (diff_lighting_text.get_width() // 2)
+    enemyspwn_text_x = x_center - (diff_enemyspwn_text.get_width() // 2)
+    enemystr_text_x = x_center - (diff_enemystr_text.get_width() // 2)
+
+    indicator_gap = 3
+    indicator_size = (
+        (2*x_offset - 11*indicator_gap - 2*bhw) // 10,
+        8
+    )
+    indicator_off = [x_center-x_offset+bhw, bh-indicator_size[1]]
+
+    indicator_full = pygame.Surface(indicator_size)
+    indicator_empty = indicator_full.copy()
+    indicator_full.fill(WHITE)
+    indicator_empty.fill((20,20,20))
+
+    while True:
+        mouse_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                need_recalc = True
+                if diff_lighting_decrease.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_LIGHTING_DIFFICULTY = min(10, max(1, SETTINGS.CFG_LIGHTING_DIFFICULTY-1))
+                elif diff_lighting_increase.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_LIGHTING_DIFFICULTY = min(10, max(1, SETTINGS.CFG_LIGHTING_DIFFICULTY+1))
+                elif diff_enemyspwn_decrease.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_ENEMY_RATE = min(10, max(1, SETTINGS.CFG_ENEMY_RATE-1))
+                elif diff_enemyspwn_increase.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_ENEMY_RATE = min(10, max(1, SETTINGS.CFG_ENEMY_RATE+1))
+                elif diff_enemystr_decrease.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_ENEMY_STRENGTH = min(10, max(1, SETTINGS.CFG_ENEMY_STRENGTH-1))
+                elif diff_enemystr_increase.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_ENEMY_STRENGTH = min(10, max(1, SETTINGS.CFG_ENEMY_STRENGTH+1))
+                elif back_button.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    main_menu()
+                else:
+                    need_recalc = False
+                if need_recalc: SETTINGS.RECALC()
+        
+        screen.fill(BLACK)
+        for button in difficulty_buttons:
+            button.draw(screen, mouse_pos)
+
+        for i in range(0, 10):
+            pos = (
+                i*(indicator_gap+indicator_size[0]) + indicator_gap + indicator_off[0],
+                y_top+indicator_off[1]
+            )
+            if (SETTINGS.CFG_LIGHTING_DIFFICULTY > i):
+                screen.blit(indicator_full, pos)
+            else:
+                screen.blit(indicator_empty, pos)
+
+        for i in range(0, 10):
+            pos = (
+                i*(indicator_gap+indicator_size[0]) + indicator_gap + indicator_off[0],
+                y_top+indicator_off[1]+y_spacing
+            )
+            if (SETTINGS.CFG_ENEMY_RATE > i):
+                screen.blit(indicator_full, pos)
+            else:
+                screen.blit(indicator_empty, pos)
+
+        for i in range(0, 10):
+            pos = (
+                i*(indicator_gap+indicator_size[0]) + indicator_gap + indicator_off[0],
+                y_top+indicator_off[1]+2*y_spacing
+            )
+            if (SETTINGS.CFG_ENEMY_STRENGTH > i):
+                screen.blit(indicator_full, pos)
+            else:
+                screen.blit(indicator_empty, pos)
+
+        screen.blit(diff_lighting_text, (lighting_text_x, y_top+text_y_offset))
+        screen.blit(diff_enemyspwn_text, (enemyspwn_text_x, y_top+text_y_offset+y_spacing))
+        screen.blit(diff_enemystr_text, (enemystr_text_x, y_top+text_y_offset+2*y_spacing))
+
+        diff_score_scale = menu_button_font.render("Score Multiplier: " + str(SETTINGS.SCORE_MULTIPLIER), True, WHITE)
+        screen.blit(diff_score_scale, (
+            x_center - diff_score_scale.get_width() // 2,
+            8
+        ))
+
+        pygame.display.flip()
+        clock.tick(SETTINGS.FRAMERATE)
+
+
+    pass
 
 def enter_score(score_n:int, date:datetime):
     margins = 50
