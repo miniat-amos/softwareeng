@@ -8,6 +8,7 @@ import pygame
 from pygame import Surface
 from pygame import Rect
 from Renderable import Renderable
+from MusicManager import MusicManager
 
 # .sb - Scoreboard file
 # .sba - Scoreboard archive file (contains any scores that couldn't load properly)
@@ -273,6 +274,7 @@ class Scoreboard(Renderable):
 		
 		# Check if header has been clicked
 		if (1 < y <= self.row_height) and (1 <= x <= self.width-1):
+			MusicManager.play_soundfx('assets/sounds/menuselect.mp3')
 			self.need_redraw_window = True
 			self.index = 0
 			self.scroll_pos = [0,0]

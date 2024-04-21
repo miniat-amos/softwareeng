@@ -65,10 +65,9 @@ class Enemy(Entity.GroundEntity):
         super().update()
 
 class MeleeEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos,
-                health:int = SETTINGS.ENEMY_MELEE_HEALTH, attack_damage:int = SETTINGS.ENEMY_MELEE_ATTACK_DAMAGE,
-                attack_cooldown:int = SETTINGS.ENEMY_MELEE_COOLDOWN, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
-        super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
+    def __init__(self, folder:str, map, size, pos):
+        super().__init__(folder, map, size, pos, SETTINGS.ENEMY_MELEE_HEALTH, SETTINGS.ENEMY_MELEE_ATTACK_DAMAGE, 
+                        SETTINGS.ENEMY_DEFAULT_SPEED, SETTINGS.ENEMY_MELEE_COOLDOWN)
         self.last_move:tuple[float,float] = [0,0]
         self.damage_sound = "assets/sounds/entities/enemies/melee/damage.wav"
         self.death_sound = "assets/sounds/entities/enemies/melee/death.mp3"
@@ -96,10 +95,9 @@ class MeleeEnemy(Enemy):
         self.normalizeMove(checked_move)
 
 class RangedEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, enemy_projectile_list,
-                 health:int = SETTINGS.ENEMY_RANGED_HEALTH, attack_damage:int = SETTINGS.ENEMY_RANGED_ATTACK_DAMAGE,
-                 attack_cooldown:int = SETTINGS.ENEMY_RANGED_COOLDOWN, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
-        super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
+    def __init__(self, folder:str, map, size, pos, enemy_projectile_list):
+        super().__init__(folder, map, size, pos, SETTINGS.ENEMY_RANGED_HEALTH, SETTINGS.ENEMY_RANGED_ATTACK_DAMAGE, 
+                        SETTINGS.ENEMY_DEFAULT_SPEED, SETTINGS.ENEMY_RANGED_COOLDOWN)
         self.enemy_projectile_list = enemy_projectile_list
         self.damage_sound = "assets/sounds/entities/enemies/ranger/damage.mp3"
         self.death_sound = "assets/sounds/entities/enemies/ranger/death.mp3"
@@ -126,10 +124,9 @@ class RangedEnemy(Enemy):
 
 
 class SummonerEnemy(Enemy):
-    def __init__(self, folder:str, map, size, pos, lightning_bolt_list,
-                 health:int = SETTINGS.ENEMY_SUMMONER_HEALTH, attack_damage:int = 0,
-                 attack_cooldown:int = SETTINGS.ENEMY_SUMMONER_COOLDOWN, speed:float = SETTINGS.ENEMY_DEFAULT_SPEED):
-        super().__init__(folder, map, size, pos, health, attack_damage, speed, attack_cooldown)
+    def __init__(self, folder:str, map, size, pos, lightning_bolt_list):
+        super().__init__(folder, map, size, pos, SETTINGS.ENEMY_SUMMONER_HEALTH, 0, 
+                        SETTINGS.ENEMY_DEFAULT_SPEED, SETTINGS.ENEMY_SUMMONER_COOLDOWN)
         self.lightning_bolt_list = lightning_bolt_list
         MusicManager.play_soundfx("assets/sounds/entities/enemies/summoner/spawn.wav", 0.75)
         self.angle:float = math.radians(random.randrange(0,359, 1))

@@ -131,6 +131,7 @@ buttons = [play_button, options_button, quit_button, scoreboard_button, difficul
 
 def play(player_type:int):
     SETTINGS.RECALC()
+    SETTINGS.IN_GAME = True
 
     gameover_ticks = 0
     gameover_delay = 200
@@ -582,6 +583,20 @@ def scoreboard(default_score:Score = False):
 
 def main_menu():
 
+    # Position buttons
+    button_size = play_button.rect.size
+    x_center = (screen.get_width()-button_size[0]) // 2
+    play_button.setPos(x_center, 300)
+
+    y_space = screen.get_height() - button_size[1] - play_button.rect.top - 25
+    y_spacing = 130
+    x_offset = button_size[0] // 2 + 30
+
+    difficulty.setPos(x_center-x_offset, y_space+y_spacing)
+    scoreboard_button.setPos(x_center+x_offset, y_space+y_spacing)
+    options_button.setPos(x_center-x_offset, y_space+2*y_spacing)
+    quit_button.setPos(x_center+x_offset, y_space+2*y_spacing)
+
     MusicManager.play_song(menu, True)
 
     # Game loop
@@ -630,7 +645,7 @@ def main_menu():
         clock.tick(FRAME_RATE)
 
 def game_over(score:int, date:datetime):
-
+    SETTINGS.IN_GAME = False
     # Called after the player fades away 
 
     # Creating both fonts
@@ -695,7 +710,7 @@ def game_over(score:int, date:datetime):
     sys.exit()
 
 def change_difficulty():
-    y_top = 120
+    y_top = 160
     y_spacing = 120
     x_offset = 240
     x_center = screen.get_width() // 2
@@ -717,7 +732,7 @@ def change_difficulty():
     indicator_gap = 3
     indicator_size = (
         (2*x_offset - 11*indicator_gap - 2*bhw) // 10,
-        8
+        6
     )
     indicator_off = [x_center-x_offset+bhw, bh-indicator_size[1]]
 
@@ -725,6 +740,8 @@ def change_difficulty():
     indicator_empty = indicator_full.copy()
     indicator_full.fill(WHITE)
     indicator_empty.fill((20,20,20))
+
+    back_button.setPos(280, 520)
 
     while True:
         mouse_pos = pygame.mouse.get_pos()
@@ -800,14 +817,12 @@ def change_difficulty():
         diff_score_scale = menu_button_font.render("Score Multiplier: " + str(SETTINGS.SCORE_MULTIPLIER), True, WHITE)
         screen.blit(diff_score_scale, (
             x_center - diff_score_scale.get_width() // 2,
-            8
+            60
         ))
 
         pygame.display.flip()
         clock.tick(SETTINGS.FRAMERATE)
 
-
-    pass
 
 def enter_score(score_n:int, date:datetime):
     margins = 50
@@ -849,8 +864,7 @@ def enter_score(score_n:int, date:datetime):
         pygame.display.flip()
         clock.tick(SETTINGS.FRAMERATE)
 
-    
+
 
 
 main_menu()
-
