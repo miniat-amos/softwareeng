@@ -119,7 +119,7 @@ optionsmenu_buttons = [mastervol_increase, mastervol_decrease, musicvol_increase
 player_1_button_x = 20
 player_2_button_x = 280
 player_3_button_x= 540
-player_button_y = 50
+player_button_y = 100
 player_1_button = Button(player_1_button_x, player_button_y, cowboy_button_image, cowboy_button_image_hover, "", menu_button_font)
 player_2_button = Button(player_2_button_x, player_button_y, ninja_button_image, ninja_button_image_hover, "", menu_button_font)
 player_3_button = Button(player_3_button_x, player_button_y, roadrunner_button_image, roadrunner_button_image_hover, "", menu_button_font)
@@ -454,6 +454,7 @@ def player_select():
     roadrunner_button_centerx = (player_3_button.rect.left + player_3_button.rect.right) / 2
 
     # Text surface init
+    title_text = menu_button_font.render("Click to select a player character!", True, WHITE)
     cowboy_text_1 = menu_button_font.render("Cowboy", True, WHITE)
     cowboy_text_2 = menu_button_font.render("Average health", True, WHITE)
     cowboy_text_3 = menu_button_font.render("Average damage", True, WHITE)
@@ -483,23 +484,24 @@ def player_select():
 
         # Drawing text for each set of buttons
         
-        screen.blit(cowboy_text_1, (cowboy_button_centerx - cowboy_text_1.get_rect().width/2, 300))
-        screen.blit(cowboy_text_2, (cowboy_button_centerx - cowboy_text_2.get_rect().width/2, 350))
-        screen.blit(cowboy_text_3, (cowboy_button_centerx - cowboy_text_3.get_rect().width/2, 400))
-        screen.blit(cowboy_text_4, (cowboy_button_centerx - cowboy_text_4.get_rect().width/2, 450))
-        screen.blit(cowboy_text_5, (cowboy_button_centerx - cowboy_text_5.get_rect().width/2, 500))
+        screen.blit(title_text, (ninja_button_centerx - title_text.get_rect().width/2, 30))
+        screen.blit(cowboy_text_1, (cowboy_button_centerx - cowboy_text_1.get_rect().width/2, 350))
+        screen.blit(cowboy_text_2, (cowboy_button_centerx - cowboy_text_2.get_rect().width/2, 400))
+        screen.blit(cowboy_text_3, (cowboy_button_centerx - cowboy_text_3.get_rect().width/2, 450))
+        screen.blit(cowboy_text_4, (cowboy_button_centerx - cowboy_text_4.get_rect().width/2, 500))
+        screen.blit(cowboy_text_5, (cowboy_button_centerx - cowboy_text_5.get_rect().width/2, 550))
 
-        screen.blit(ninja_text_1, (ninja_button_centerx - ninja_text_1.get_rect().width/2, 300))
-        screen.blit(ninja_text_2, (ninja_button_centerx - ninja_text_2.get_rect().width/2, 350))
-        screen.blit(ninja_text_3, (ninja_button_centerx - ninja_text_3.get_rect().width/2, 400))
-        screen.blit(ninja_text_4, (ninja_button_centerx - ninja_text_4.get_rect().width/2, 450))
-        screen.blit(ninja_text_5, (ninja_button_centerx - ninja_text_5.get_rect().width/2, 500))
+        screen.blit(ninja_text_1, (ninja_button_centerx - ninja_text_1.get_rect().width/2, 350))
+        screen.blit(ninja_text_2, (ninja_button_centerx - ninja_text_2.get_rect().width/2, 400))
+        screen.blit(ninja_text_3, (ninja_button_centerx - ninja_text_3.get_rect().width/2, 450))
+        screen.blit(ninja_text_4, (ninja_button_centerx - ninja_text_4.get_rect().width/2, 500))
+        screen.blit(ninja_text_5, (ninja_button_centerx - ninja_text_5.get_rect().width/2, 550))
 
-        screen.blit(roadrunner_text_1, (roadrunner_button_centerx - roadrunner_text_1.get_rect().width/2, 300))
-        screen.blit(roadrunner_text_2, (roadrunner_button_centerx - roadrunner_text_2.get_rect().width/2, 350))
-        screen.blit(roadrunner_text_3, (roadrunner_button_centerx - roadrunner_text_3.get_rect().width/2, 400))
-        screen.blit(roadrunner_text_4, (roadrunner_button_centerx - roadrunner_text_4.get_rect().width/2, 450))
-        screen.blit(roadrunner_text_5, (roadrunner_button_centerx - roadrunner_text_5.get_rect().width/2, 500))
+        screen.blit(roadrunner_text_1, (roadrunner_button_centerx - roadrunner_text_1.get_rect().width/2, 350))
+        screen.blit(roadrunner_text_2, (roadrunner_button_centerx - roadrunner_text_2.get_rect().width/2, 400))
+        screen.blit(roadrunner_text_3, (roadrunner_button_centerx - roadrunner_text_3.get_rect().width/2, 450))
+        screen.blit(roadrunner_text_4, (roadrunner_button_centerx - roadrunner_text_4.get_rect().width/2, 500))
+        screen.blit(roadrunner_text_5, (roadrunner_button_centerx - roadrunner_text_5.get_rect().width/2, 550))
 
         # Check for hover
         for button in playermenu_buttons:
