@@ -2,7 +2,7 @@ import math
 
 ### NOTE: Some values are set to 0 by default because they will be properly calculated in RECALC()
 
-USE_DEBUG = True
+USE_DEBUG = False
 
 # User settings (Each range 1~10)
 CFG_LIGHTING_DIFFICULTY = 4
