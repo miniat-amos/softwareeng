@@ -5,6 +5,7 @@ DefaultDirName={pf}\LBT
 OutputDir=Output
 Compression=lzma2
 SolidCompression=yes
+PrivilegesRequired=admin
 
 [Files]
 Source: "dist\main.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -14,3 +15,6 @@ Source: "Scores\*"; DestDir: "{app}\Scores"; Flags: recursesubdirs ignoreversion
 [Icons]
 Name: "{commondesktop}\LightningBoltTown"; Filename: "{app}\main.exe"; \
   WorkingDir: "{app}"
+
+[Dirs]
+Name: "{userappdata}\LBT"; Permissions: users-modify
