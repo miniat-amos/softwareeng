@@ -8,6 +8,7 @@ SolidCompression=yes
 DefaultGroupName=LBT
 AllowNoIcons=yes
 PrivilegesRequired=admin
+OutputBaseFilename = LightningBoltTown2Installer
 
 [Files]
 Source: "dist\main.exe"; DestDir: "{app}"; Flags: ignoreversion
