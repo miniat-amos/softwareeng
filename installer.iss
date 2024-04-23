@@ -7,6 +7,7 @@ Compression=lzma2
 SolidCompression=yes
 DefaultGroupName=LBT
 AllowNoIcons=yes
+PrivilegesRequired=admin
 
 [Files]
 Source: "dist\main.exe"; DestDir: "{app}"; Flags: ignoreversion
@@ -21,3 +22,6 @@ Name: "{commondesktop}\LightningBoltTown"; Filename: "{app}\main.exe"; \
   WorkingDir: "{app}"; Tasks: desktopicon
 Name: "{group}\LightningBoltTown"; Filename: "{app}\main.exe"; \
   WorkingDir: "{app}"
+
+[Dirs]
+Name: "{userappdata}\LBT"; Permissions: users-modify
