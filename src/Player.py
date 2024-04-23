@@ -2,16 +2,32 @@ import pygame
 import Entity
 import Inventory
 import SETTINGS
+import Camera
 import math
+import Projectile
+from MusicManager import MusicManager
 
 class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
-    def __init__(self, texture_folder:str, map = 0):
-        super().__init__(   texture_folder, map,    (10,10),  (400,400),  100,    SETTINGS.PLAYER_SPEED)
+    def __init__(self, texture_folder:str, player_projectile_list, health, attack_cooldown, speed):
+        super().__init__(   texture_folder, None,    (10,10),  (400,400),  health,    speed, SETTINGS.PLAYER_IFRAMES)
         
         self.points = 0 #probably best to store points/money directly, rather than in inventory
         self.inventory = Inventory.Inventory()
         self.build = 0
-        self.tex_offset = (-3,-6)
+        self.tex_offset = [-3,-6]
+        self.camera:Camera.Camera
+        self.projectile_list = player_projectile_list
+        self.attack_cooldown:int = attack_cooldown
+        self.attack_cooldown_max:int = attack_cooldown
+        self.projectile_image:str
+        self.projectile_piercing:bool
+        self.projectile_sound:str
+        self.projectile_speed:float
+        self.projectile_damage:int
+        self.iframes_max = SETTINGS.PLAYER_IFRAMES
+
+    def set_camera(self, camera:Camera.Camera):
+        self.camera = camera
     
     def add_points(self, amount:int):
         if (amount < 0):
@@ -34,7 +50,10 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
     
     def update(self):
         if (self.alive):
+            self.attack_cooldown = max(0, self.attack_cooldown-1)
             self.move()
+            self.ranged_attack()
+            super().update()
 
     def move(self):
         horizontal_direction = 0    #   These keep track of horizontal and vertical direction. Left and down are -1,
@@ -69,9 +88,31 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             else:
                 self.x += undoAxis(checked_move[0], checked_move[1], self.speed)
 
+    def ranged_attack(self):
+        if (pygame.mouse.get_pressed()[0] and self.attack_cooldown == 0):
+            cy = SETTINGS.SCALE*self.camera.render_area.bottom - (SETTINGS.HEIGHT-pygame.mouse.get_pos()[1])
+            cx = pygame.mouse.get_pos()[0] + self.camera.render_area.left
+            xdiff = cx - SETTINGS.SCALE * self.x
+            ydiff = cy - SETTINGS.SCALE * self.y
+            if (xdiff == 0):
+                if (ydiff < 0):
+                    angle = 270
+                else:
+                    angle = 90
+            else:
+                angle = math.degrees(math.atan((ydiff) / (xdiff)))
+            if (xdiff < 0): angle += 180
+            newp = Projectile.Projectile(self.projectile_image, (10,10), 
+                                         (self.pos[0], self.pos[1]-3),
+                                         1, self.projectile_speed, 20, angle, self.projectile_piercing)
+            newp.tex_offset = (0,0)
+            self.projectile_list.append(newp)
+            MusicManager.play_soundfx(self.projectile_sound, 0.5)
+            self.attack_cooldown = self.attack_cooldown_max
+
     def button_functions(self):
         if (pygame.key.get_pressed()[pygame.K_z]):
-            self.add_points(10)
+            self.add_points(100)
             print(self.points)
         if (pygame.key.get_pressed()[pygame.K_x]):
             self.remove_points(10)
@@ -109,6 +150,42 @@ class Player(Entity.GroundEntity):# pygame.sprite.Sprite):
             for item in self.inventory.items:
                 print(item , ": " , str(self.inventory.items[item]))
 
+
+class Cowboy(Player):
+    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.COWBOY_ATTACK_COOLDOWN):
+        super().__init__(SETTINGS.COWBOY_FOLDER, player_projectile_list, SETTINGS.COWBOY_HEALTH, attack_cooldown, SETTINGS.COWBOY_SPEED)
+        self.projectile_image = SETTINGS.COWBOY_FOLDER + "projectile.png"
+        self.projectile_piercing = True
+        self.projectile_sound = SETTINGS.COWBOY_PROJECTILE_SOUND
+        self.projectile_speed = SETTINGS.COWBOY_PROJECTILE_SPEED
+        self.projectile_damage = SETTINGS.COWBOY_PROJECTILE_DAMAGE
+
+    def update(self):
+        super().update()
+
+class Ninja(Player):
+    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.NINJA_ATTACK_COOLDOWN):
+        super().__init__(SETTINGS.NINJA_FOLDER, player_projectile_list, SETTINGS.NINJA_HEALTH, attack_cooldown, SETTINGS.NINJA_SPEED)
+        self.projectile_image = SETTINGS.NINJA_FOLDER + "projectile.png"
+        self.projectile_piercing = False
+        self.projectile_sound = SETTINGS.NINJA_PROJECTILE_SOUND
+        self.projectile_speed = SETTINGS.NINJA_PROJECTILE_SPEED
+        self.projectile_damage = SETTINGS.NINJA_PROJECTILE_DAMAGE
+
+    def update(self):
+        super().update()
+
+class Roadrunner(Player):
+    def __init__(self, player_projectile_list, attack_cooldown = SETTINGS.ROADRUNNER_ATTACK_COOLDOWN):
+        super().__init__(SETTINGS.ROADRUNNER_FOLDER, player_projectile_list, SETTINGS.ROADRUNNER_HEALTH, attack_cooldown, SETTINGS.ROADRUNNER_SPEED)
+        self.projectile_image = SETTINGS.ROADRUNNER_FOLDER + "projectile.png"
+        self.projectile_piercing = False
+        self.projectile_sound = SETTINGS.ROADRUNNER_PROJECTILE_SOUND
+        self.projectile_speed = SETTINGS.ROADRUNNER_PROJECTILE_SPEED
+        self.projectile_damage = SETTINGS.ROADRUNNER_PROJECTILE_DAMAGE
+
+    def update(self):
+        super().update()
 
 def undoAxis(undo_axis:float, other_axis:float, max_dist:float) -> float:
     dist = abs(math.pow(max_dist, 2) - math.pow(other_axis, 2))

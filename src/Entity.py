@@ -4,23 +4,49 @@ import Renderable
 import math
 import Collision
 from Collision import StaticCollidable
+from MusicManager import MusicManager
 
 class Entity(Renderable.Renderable):
-    def __init__(self, texture, size, pos, health, speed:float):
+    def __init__(self, texture, size, pos, health, speed:float, iframes:int = 1):
         super().__init__(   texture,      size,  pos)
         #                   ^ img file                  ^ size      ^start pos
         self.speed = speed
         self.health:int = health
         self.max_health = health
         self.alive = True
+        self.should_render = True
         self._x:float = pos[0]
         self._y:float = pos[1]
+        self.iframes:int = 0
+        self.iframes_max:int = iframes
+        self.damage_sound:str = SETTINGS.SILENCE_SOUND
+        self.death_sound:str = SETTINGS.SILENCE_SOUND
+        self.dead_ticks = 0
+
+    def update(self):
+        self.iframes = max(0, self.iframes-1)
+        if (self.alive == False):
+            self.dying()
 
     def lower_health(self, value:int):
         self.health -= value
         self.health = max(0,self.health)
         if (self.health == 0):
             self.alive = False
+            self.iframes = SETTINGS.FRAMERATE * 2
+            MusicManager.play_soundfx(self.death_sound)
+
+    def damage(self, value:int):    #lower health but with after-damage i-frames
+        if self.iframes == 0 and self.alive:
+            self.health -= value
+            self.health = max(0,self.health)
+            if (self.health == 0):
+                self.alive = False
+                MusicManager.play_soundfx(self.death_sound)
+            else:
+                MusicManager.play_soundfx(self.damage_sound)
+                self.iframes = self.iframes_max
+
 
     def increase_health(self, value:int):
         self.health += value
@@ -58,6 +84,13 @@ class Entity(Renderable.Renderable):
         ini_pos = (self.x, self.y)
         self.raw_move(move)
         return (self.x-ini_pos[0], self.y-ini_pos[1])
+    
+    def dying(self):
+        self.dead_ticks += 1
+        self.surface.set_alpha(255-(((self.dead_ticks)/SETTINGS.FRAMERATE)*255))
+        if (self.dead_ticks == SETTINGS.FRAMERATE):
+            self.should_render = False
+
 
 
 
@@ -65,11 +98,14 @@ class Entity(Renderable.Renderable):
 # For entities that walk around on the ground. 
 # They can face is the 4 cardinal direcitons, and need to check collisions with the map. 
 class GroundEntity(Entity):
-    def __init__(self, texture_folder, map, size, pos, health, speed:float):
-        super().__init__(texture_folder+"down.png", size, pos, health, speed)
+    def __init__(self, texture_folder, map, size, pos, health, speed:float, iframes:int = 1):
+        super().__init__(texture_folder+"down.png", size, pos, health, speed, iframes)
         self.texture_folder = texture_folder
         self.map:StaticCollidable = map
         self.direction_y = "down"
+
+    def update(self):
+        super().update()
     
     # Checks collisions, moves, and returns the movement vector
     # UNNORMALIZED - Does not check if the movement vector exceeds the max speed

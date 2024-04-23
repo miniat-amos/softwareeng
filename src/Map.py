@@ -10,7 +10,7 @@ from Collision import StaticCollidable
 from Camera import Camera
 import random
 from Player import Player
-import Loot
+from Loot import Loot
 import SETTINGS
 #import StaticMusicManager
 import Collision
@@ -86,6 +86,10 @@ class Map(StaticCollidable):
 
 	def getRoom(self, index:int):
 		return self.__room_list[index]
+	
+	# Returns the total number of generated rooms
+	def getRoomCount(self):
+		return self.__room_gen_count
 
 
 	# Tick functions are run every frame and have no parameters
@@ -226,14 +230,22 @@ class Room(StaticCollidable):
 
 		self.tile_list:list[Tile] = []
 
+		rem_buildings = SETTINGS.BUILDINGS_PER_ROOM
 		tile_y = self.bottom
 		for i in range(0, tile_count):
+			rem_tiles = (tile_count-i)
+			if rem_buildings > 1.5*rem_tiles:
+				buildings = 2
+			elif rem_buildings > 0.5*rem_tiles:
+				buildings = 1
+			else:
+				buildings = 0
+			rem_buildings -= buildings
 			tile_y -= TILE_HEIGHT
-			tile = Tile(tile_y)
+			tile = Tile(tile_y, buildings)
 			self.tile_list.append(tile)
-			pass
 	
-		self.loot_list:list[Loot.Loot] = []
+		self.loot_list:list[Loot] = []
 
 		i:int = 0
 		while (i < random.randint(SETTINGS.MIN_LOOT_PER_ROOM, SETTINGS.MAX_LOOT_PER_ROOM)):
@@ -241,13 +253,13 @@ class Room(StaticCollidable):
 			pos:tuple[int,int] = [random.randint(self.get_rect().left, self.get_rect().right), random.randint(self.get_rect().top, self.get_rect().bottom)]
 			long_val = random.randint(1,100)
 			if (long_val <= 10):
-				val = 1000
+				size = Loot.LARGE
 			elif (long_val <= 50):
-				val = 100
+				size =  Loot.MEDIUM
 			else:
-				val = 10
+				size = Loot.SMALL
 			# Note: loot value must currently be 10, 100, or 1000
-			l = Loot.Loot(pos, val)
+			l = Loot(pos, size)
 			if (self.collision_boolean(l)):
 				pass
 			else:
@@ -274,7 +286,7 @@ class Room(StaticCollidable):
 				tile.fillRenderGroup(render_group)
 		for l in self.loot_list:
 			render_group.appendOnGround(l)
-		render_group.appendGround(self)
+		# render_group.appendGround(self)
 	
 	# Checks player-related things like roof visibility
 	def playerCheck(self, player:Player):
@@ -309,17 +321,33 @@ class Room(StaticCollidable):
 		return string
 
 
-class Tile(StaticCollidable):
-	surface = pygame.Surface((WIDTH, TILE_HEIGHT))
-	surface.fill((100, 50, 10))
-	pygame.draw.line(surface, (0,0,0), surface.get_rect().topleft, surface.get_rect().topright)
 
-	def __init__(self, top_y:int):
+class Tile(StaticCollidable):
+	surface = pygame.image.load("assets/sprites/buildings/Road.png")
+	surface = pygame.transform.scale(surface, (SETTINGS.WR_WIDTH, SETTINGS.WR_TILE_HEIGHT))
+
+	def __init__(self, top_y:int, building_cnt:int):
 		super().__init__()
 		self.set_rect(Rect(0, top_y, WIDTH, TILE_HEIGHT))
+		self.building_left = False
+		self.building_right = False
 
-		self.building_left = Building(self.get_rect(), random.randint(-1, Building.TYPE_COUNT-1), True)
-		self.building_right = Building(self.get_rect(), random.randint(-1, Building.TYPE_COUNT-1), False)
+		if (building_cnt < 1): # Both spaces will be empty
+			pass 
+		elif (building_cnt < 2):
+			if (random.choice([True,False])): # One space will have a building
+				self.building_right = Building(self.get_rect(), random.randint(0,Building.TYPE_COUNT-1), False)
+			else:
+				self.building_left = Building(self.get_rect(), random.randint(0,Building.TYPE_COUNT-1), True)
+		else: # Both space will have buildings
+			self.building_left = Building(self.get_rect(), random.randint(0,Building.TYPE_COUNT-1), True)
+			self.building_right = Building(self.get_rect(), random.randint(0,Building.TYPE_COUNT-1), False)
+		
+		# Fill in any empty spaces with empty "buildings"
+		if not self.building_left:
+			self.building_left = Building(self.get_rect(), -1, True)
+		if not self.building_right:
+			self.building_right = Building(self.get_rect(), -1, False)
 
 	# Fills render group with all tile objects
 	def fillRenderGroup(self, render_group:Rendergroup):

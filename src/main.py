@@ -23,7 +23,6 @@ from datetime import datetime
 from MusicManager import MusicManager #TEMP DELETE AFTER FIXING STATIC
 
 FRAME_RATE = SETTINGS.FRAMERATE
-PRINT_RATE = FRAME_RATE if FRAME_RATE else 600 
 
 # Only used to display stuff without a camera class. Should be (0,0) when camera is used. 
 # DRAW_OFFSET = (200, 500)
@@ -50,8 +49,6 @@ RED = (245, 18, 2)
 # Set up clock
 clock = pygame.time.Clock()
 
-# Set up the music manager
-#music_manager = MusicManager.MusicManager()
 # Songs
 maingame = 'assets/music/Maingame.mp3'
 menu = 'assets/music/Menu.mp3'
@@ -61,12 +58,26 @@ music_gameover = 'assets/music/GameOver.mp3'
 sound_fadeaway = 'assets/sounds/fadeaway.mp3'
 temp_master_volume:float  #used to store master volume while it is muted in game over
 
-# Button setup
+### Button setup ##
+# Main menu
 menu_button_font = pygame.font.Font(None, 48)
 img_button_hover = pygame.image.load("assets/sprites/menu/Button_Hover.png")
 img_button = pygame.image.load("assets/sprites/menu/Button.png")
 img_button_hover_small = pygame.image.load("assets/sprites/menu/Button_Hover_Small.png")
 img_button_small = pygame.image.load("assets/sprites/menu/Button_Small.png")
+# Player buttons
+cowboy_button_image = pygame.image.load("assets/sprites/menu/cowboy_button.png")
+cowboy_button_image_hover = pygame.image.load("assets/sprites/menu/cowboy_button_hover.png")
+ninja_button_image = pygame.image.load("assets/sprites/menu/ninja_button.png")
+ninja_button_image_hover = pygame.image.load("assets/sprites/menu/ninja_button_hover.png")
+roadrunner_button_image = pygame.image.load("assets/sprites/menu/roadrunner_button.png")
+roadrunner_button_image_hover = pygame.image.load("assets/sprites/menu/roadrunner_button_hover.png")
+# Buttons
+play_button = Button(275, 300, img_button, img_button_hover, "Play", menu_button_font)
+options_button = Button(50, 475, img_button, img_button_hover, "Options", menu_button_font)
+quit_button = Button(505, 475, img_button, img_button_hover, "Quit", menu_button_font)
+back_button = Button(280, 600, img_button, img_button_hover, "Back", menu_button_font)
+scoreboard_button = Button(280, 600, img_button, img_button_hover, "Scoreboard", menu_button_font)
 
 # Logo
 logo_scale = .50
@@ -74,15 +85,21 @@ img_logo = pygame.image.load("assets/sprites/menu/logo.png")
 img_logo = pygame.transform.scale(img_logo, (int(img_logo.get_width() * logo_scale), int(img_logo.get_height() * logo_scale)))
 # Logo Text
 logo_font = pygame.font.Font(None, 65)
-textsurface_logo = logo_font.render("Lightning Bolt Town", True, (255, 255, 255))
+textsurface_logo = logo_font.render("Lightning Bolt Town", True, WHITE)
 
+# Difficulty options buttons
+difficulty = Button(0,0, img_button, img_button_hover, "Difficulty", menu_button_font)
+diff_enemystr_increase = Button(0,0, img_button_small, img_button_hover_small, "+", menu_button_font)
+diff_enemystr_decrease = Button(0,0, img_button_small, img_button_hover_small, "-", menu_button_font)
+diff_lighting_increase = Button(0,0, img_button_small, img_button_hover_small, "+", menu_button_font)
+diff_lighting_decrease = Button(0,0, img_button_small, img_button_hover_small, "-", menu_button_font)
+diff_enemyspwn_increase = Button(0,0, img_button_small, img_button_hover_small, "+", menu_button_font)
+diff_enemyspwn_decrease = Button(0,0, img_button_small, img_button_hover_small, "-", menu_button_font)
+difficulty_buttons = [diff_enemyspwn_decrease,diff_enemyspwn_increase,diff_lighting_decrease,diff_lighting_increase,diff_enemystr_decrease,diff_enemystr_increase,back_button]
 
-# Buttons
-play_button = Button(275, 300, img_button, img_button_hover, "Play", menu_button_font)
-options_button = Button(50, 475, img_button, img_button_hover, "Options", menu_button_font)
-quit_button = Button(505, 475, img_button, img_button_hover, "Quit", menu_button_font)
-back_button = Button(280, 600, img_button, img_button_hover, "Back", menu_button_font)
-scoreboard_button = Button(280, 600, img_button, img_button_hover, "Scoreboard", menu_button_font)
+diff_lighting_text = menu_button_font.render("Lighting", True, WHITE)
+diff_enemyspwn_text = menu_button_font.render("Enemy Count", True, WHITE)
+diff_enemystr_text = menu_button_font.render("Enemy Strength", True, WHITE)
 
 # Options menu buttons
 volbutton_x1 = 130
@@ -98,25 +115,47 @@ soundfxvol_decrease = Button(volbutton_x1, volubtton_y + volbutton_y_change * 2,
 
 optionsmenu_buttons = [mastervol_increase, mastervol_decrease, musicvol_increase, musicvol_decrease, soundfxvol_increase, soundfxvol_decrease, back_button]
 
-buttons = [play_button, options_button, quit_button, scoreboard_button]
+# Player select menu buttons
+player_1_button_x = 20
+player_2_button_x = 280
+player_3_button_x= 540
+player_button_y = 100
+player_1_button = Button(player_1_button_x, player_button_y, cowboy_button_image, cowboy_button_image_hover, "", menu_button_font)
+player_2_button = Button(player_2_button_x, player_button_y, ninja_button_image, ninja_button_image_hover, "", menu_button_font)
+player_3_button = Button(player_3_button_x, player_button_y, roadrunner_button_image, roadrunner_button_image_hover, "", menu_button_font)
 
-enemy_projectile_list:list[Projectile.Projectile] = []
+playermenu_buttons = [player_1_button, player_2_button, player_3_button, back_button]
+
+buttons = [play_button, options_button, quit_button, scoreboard_button, difficulty]
 
 
-def play():
+def play(player_type:int):
+    SETTINGS.RECALC()
+    SETTINGS.IN_GAME = True
 
     gameover_ticks = 0
     gameover_delay = 200
     dying = False
     
     # Set up the player
-    player = Player.Player("assets/sprites/entities/players/cowboy/")
+    player_projectile_list:list[Projectile.Projectile] = []
+    if (player_type == 0):
+        player = Player.Cowboy(player_projectile_list)
+    elif(player_type == 1):
+        player = Player.Ninja(player_projectile_list)
+    elif(player_type == 2):
+        player = Player.Roadrunner(player_projectile_list)
+    else:
+        print("Error - invalid player index value")
+        quit()
 
     # Create UI
     ui = UI(player)
 
     # Set up the camera
     camera = Camera(player, SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT)
+
+    player.set_camera(camera)
 
     MusicManager.play_song(maingame, True)
 
@@ -126,7 +165,6 @@ def play():
     # Render distance should be set to (screen height / 2) normally
     map = Map(camera, render_group, 4, 60)
     map.setStartPosOf(player)
-    print(player.pos)
 
     player.map = map
 
@@ -134,21 +172,11 @@ def play():
 
     lightning_bolt_list:list[Lightning.Lightning] = []
     enemy_list:list[Enemies.Enemy] = []
-    #enemy_projectile_list:list[Projectile.Projectile] = []
+    enemy_projectile_list:list[Projectile.Projectile] = []
 
-    l_pressed = False
-    p_pressed = False
-    k_pressed = False
-    left_bracket_pressed = False
-    right_bracket_pressed = False
-    loot_list:list[Loot.Loot] = []
-
-    l_pressed = False
-    o_pressed = False
-
-    i = PRINT_RATE
-
-    current_frame = 0
+    # current_frame = 0
+    lighting_spawn_frame = SETTINGS.LIGHTNING_SPAWN_RATE
+    enemy_spawn_frame = SETTINGS.ENEMY_SPAWN_RATE
 
     pre_screen = pygame.Surface((SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT))
 
@@ -162,13 +190,36 @@ def play():
                     pygame.quit()
                     sys.exit()
             MusicManager.master_volume_game_change(event)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    MusicManager.play_soundfx(testsound)
-                if event.key == pygame.K_o:
-                    MusicManager.play_song(menu, True)
-                if event.key == pygame.K_i:
-                    MusicManager.play_song(maingame, True)
+            if (SETTINGS.USE_DEBUG):
+                if event.type == pygame.KEYDOWN:
+                    # Music
+                    if event.key == pygame.K_p:
+                        MusicManager.play_soundfx(testsound)
+                    if event.key == pygame.K_o:
+                        MusicManager.play_song(menu, True)
+                    if event.key == pygame.K_i:
+                        MusicManager.play_song(maingame, True)
+                    # Enemies
+                    if event.key == pygame.K_KP7:
+                        newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT))
+                        enemy_list.append(newe)
+                    if event.key == pygame.K_KP_8:
+                        newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi, player.top-.25*SETTINGS.WR_HEIGHT),enemy_projectile_list)
+                        enemy_list.append(newe)
+                    if event.key == pygame.K_KP9:
+                        newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), lightning_bolt_list)
+                        enemy_list.append(newe)
+                    if event.key == pygame.K_KP4:
+                        newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/", (player.x, player.top-SETTINGS.WR_HEIGHT))
+                        lightning_bolt_list.append(newl)
+                    if event.key == pygame.K_KP0:
+                        lightning_bolt_list.clear()
+                        enemy_list.clear()
+                        
+                    # Other
+                    if event.key == pygame.K_KP5:
+                        newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 1, 1, 20, random.randint(0,359))
+                        enemy_projectile_list.append(newp)
 
         # Check for game over
         if player.health <= 0 and not dying:
@@ -179,9 +230,6 @@ def play():
             dying = True
 
         if dying:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
             diescreen = pygame.Surface((SETTINGS.WR_WIDTH, SETTINGS.WR_HEIGHT))
             diescreen.fill(BLACK)
             render_group.appendTo(player, 3)
@@ -207,87 +255,35 @@ def play():
         
         # Not dying
         else:
-            # Event handling
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-                MusicManager.master_volume_game_change(event)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_p:
-                        MusicManager.play_soundfx(testsound, 1)
-                    if event.key == pygame.K_o:
-                        MusicManager.play_song(menu, True, 0.5)
-                    if event.key == pygame.K_i:
-                        MusicManager.play_song(maingame, True, 0.5)
 
-            if (pygame.key.get_pressed()[pygame.K_l]):
-                if (l_pressed == False):
-                    newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/", (player.x, player.top-SETTINGS.WR_HEIGHT), FRAME_RATE * 5)
-                    lightning_bolt_list.append(newl)
-                l_pressed = True
-            else:
-                l_pressed = False
-
-            if (pygame.key.get_pressed()[pygame.K_p]):
-                if (p_pressed == False):
-                    newp = Projectile.Projectile("assets/sprites/entities/projectiles/bullet.png", (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 1, 1, 20, random.randint(0,359))
-                    enemy_projectile_list.append(newp)
-                p_pressed = True
-            else:
-                p_pressed = False
-
-            if (pygame.key.get_pressed()[pygame.K_k]):
-                if (k_pressed == False):
-                    newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20)#, 1)
-                    enemy_list.append(newe)
-                k_pressed = True
-            else:
-                k_pressed = False
-            if (pygame.key.get_pressed()[pygame.K_LEFTBRACKET]):
-                if (left_bracket_pressed == False):
-                    newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, enemy_projectile_list)
-                    enemy_list.append(newe)
-                left_bracket_pressed = True
-            else:
-                left_bracket_pressed = False
-
-            if (pygame.key.get_pressed()[pygame.K_RIGHTBRACKET]):
-                if (right_bracket_pressed == False):
-                    newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (player.xi + 10, player.top-.25*SETTINGS.WR_HEIGHT), 100, 20, lightning_bolt_list)
-                    enemy_list.append(newe)
-                right_bracket_pressed = True
-            else:
-                right_bracket_pressed = False
-
-            if (pygame.key.get_pressed()[pygame.K_o]):
-                if (o_pressed == False):
-                    newc = Loot.Loot((player.rect.centerx, player.rect.top-100), 10)
-                    loot_list.append(newc)
-                o_pressed = True
-            else:
-                o_pressed = False
+            if (SETTINGS.USE_DEBUG): player.button_functions()
 
             # Spawn new lightning bolts
-            current_frame += 1
-            if (current_frame == FRAME_RATE):	
-                current_frame = 0				# once per second:
-                newr = random.randrange(0,5,1)		# 20% random chance to
-                print(newr)
-                if (newr == 0):						# spawn new lightning (with 5 second duration)
+            if (lighting_spawn_frame <= 0):
+                Lightning.Lightning.updateStats(player)
+                lighting_spawn_frame = SETTINGS.LIGHTNING_SPAWN_RATE
+                # Random chance to spawn
+                newr = random.randrange(0,150,1)
+                if (newr < math.sqrt(player.points)/2+15):
+                    # Get random x position
                     l_x = random.randrange(0,SETTINGS.WR_WIDTH, 1)
+                    # Get random y positon
+                    offset = random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                     if (player.direction_y == "up"):
-                        l_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                        l_y = player.yi - offset
                     else:
-                        l_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
+                        l_y = player.yi +offset
+                    # Spawn lighting bolt
                     newl = Lightning.Lightning("assets/sprites/entities/enemies/lightning/",
-                                    (l_x, l_y), FRAME_RATE * 5)
+                                    (l_x, l_y))
                     lightning_bolt_list.append(newl)
 
+            
             # Spawn new enemies
-            if (current_frame == math.floor(FRAME_RATE/2)):	
-                # once per second:
-                newr = random.randrange(0,5,1)		# 1/6 random chance to
-                if (newr == 0):						# spawn new enemy
+            if (enemy_spawn_frame <= 0):	
+                enemy_spawn_frame = SETTINGS.ENEMY_SPAWN_RATE
+                newr = random.randrange(0, 180, 1)
+                if (newr < map.getRoomCount()*math.sqrt(SETTINGS.CFG_ENEMY_RATE)):
                     enemy_type = random.randrange(1,100,1)
                     newe:Enemies.Enemy
                     position_good:bool = False
@@ -297,12 +293,12 @@ def play():
                         e_y = player.yi - random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
                         #else:
                         #    e_y = player.yi + random.randrange(SETTINGS.WR_HEIGHT, SETTINGS.WR_HEIGHT + 30, 1)
-                        if (enemy_type <= 50):
-                            newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y), 100, 20)#, 1)
-                        elif (enemy_type <= 85):
-                            newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), 100, 20, enemy_projectile_list)
+                        if (enemy_type <= SETTINGS.ENEMY_MELEE_PCT_SPAWN):
+                            newe = Enemies.MeleeEnemy("assets/sprites/entities/enemies/zombie/", map, (10,10), (e_x, e_y))
+                        elif (enemy_type <= SETTINGS.ENEMY_RANGED_PCT_SPAWN+SETTINGS.ENEMY_MELEE_PCT_SPAWN):
+                            newe = Enemies.RangedEnemy("assets/sprites/entities/enemies/skeleton/", map, (16,16), (e_x, e_y), enemy_projectile_list)
                         else:
-                            newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), 100, 20, lightning_bolt_list)
+                            newe = Enemies.SummonerEnemy("assets/sprites/entities/enemies/leg_thing/", map, (32,32), (e_x, e_y), lightning_bolt_list)
                         if isinstance(newe, Enemies.SummonerEnemy):
                             position_good = True
                         else:
@@ -316,16 +312,14 @@ def play():
 
             # Object updates
             player.update()
-            #player.set_points_increase_only(-player.y)
-            player.button_functions() # Functions for player values
             map.collide_loot(player)
             map.tick() # Update map	
-            player.button_functions() #just functions for player values and stuff
+            
 
             # Update lighting bolts and add them to the render group
             for l in lightning_bolt_list:
                 l.update(player)
-                if (l.alive):
+                if (l.should_render):
                     render_group.appendSky(l)
                 else:
                     lightning_bolt_list.remove(l)
@@ -333,7 +327,7 @@ def play():
 
             for e in enemy_list:
                 e.update(player)
-                if (e.alive):
+                if (e.should_render):
                     if isinstance(e, Enemies.SummonerEnemy):
                         render_group.appendSky(e)
                     else:
@@ -342,12 +336,22 @@ def play():
                     enemy_list.remove(e)
 
             for ep in enemy_projectile_list:
-                ep.update(player)
                 if (ep.alive) and camera.render_area.colliderect(ep.get_rect()):
                     render_group.appendSky(ep)
+                    ep.damage_check(player)
                 else:
                     enemy_projectile_list.remove(ep)
+                ep.update()
 
+            for p in player_projectile_list:
+                for e in enemy_list:
+                    p.damage_check(e)
+                if (p.alive) and camera.render_area.colliderect(p.get_rect()):
+                    render_group.appendSky(p)
+                else:
+                    player_projectile_list.remove(p)
+                p.update()
+                
             # Rendering prep
             pre_screen.fill(BG_COLOR)
             map.playerCheck(player)
@@ -356,10 +360,6 @@ def play():
             # Rendering
             map.fillRendergroup(render_group)
             render_group.appendTo(player, 3)
-            for lo in loot_list:
-            #render_group.appendTo(lo, 2)   this doesn't seem to work but it renders properly in Map
-                if (lo.update(player)) == True:
-                    loot_list.remove(lo)
             render_group.render(pre_screen, camera) # Render everything within the render group
 
             pygame.transform.scale(pre_screen, (screen_width, screen_height), screen)
@@ -370,19 +370,12 @@ def play():
             # Refresh the display
             pygame.display.flip()
 
-            # Renderng cleanup
+            # Rendering cleanup
             render_group.clearAll()
-            
-            i -= 1
-            
-            if i < 1:
-                # print(map.getStats())
-                # print(clock.get_fps())
-                # print("Player Health =", player.health)
-                i = PRINT_RATE
 
                 
-                
+            lighting_spawn_frame -= 1
+            enemy_spawn_frame -= 1
             # Cap the frame rate
             clock.tick(FRAME_RATE)
 
@@ -453,6 +446,88 @@ def options():
 
         clock.tick(60)
 
+def player_select():
+    # Insert our main branch options configurations once ready
+    # Rendering
+    #enter_score(15, datetime.now())
+    back_button.setPos(280, 600)
+
+    cowboy_button_centerx = (player_1_button.rect.left + player_1_button.rect.right) / 2
+    ninja_button_centerx = (player_2_button.rect.left + player_2_button.rect.right) / 2
+    roadrunner_button_centerx = (player_3_button.rect.left + player_3_button.rect.right) / 2
+
+    # Text surface init
+    title_text = menu_button_font.render("Click to select a player character!", True, WHITE)
+    cowboy_text_1 = menu_button_font.render("Cowboy", True, WHITE)
+    cowboy_text_2 = menu_button_font.render("Average health", True, WHITE)
+    cowboy_text_3 = menu_button_font.render("Average damage", True, WHITE)
+    cowboy_text_4 = menu_button_font.render("Average speed", True, WHITE)
+    cowboy_text_5 = menu_button_font.render("Piercing bullets", True, WHITE)
+    ninja_text_1 = menu_button_font.render("Ninja", True, WHITE)
+    ninja_text_2 = menu_button_font.render("+ Health", True, WHITE)
+    ninja_text_3 = menu_button_font.render("- Damage", True, WHITE)
+    ninja_text_4 = menu_button_font.render("+ Speed", True, WHITE)
+    ninja_text_5 = menu_button_font.render("Fast firing", True, WHITE)
+    roadrunner_text_1 = menu_button_font.render("Roadrunner", True, WHITE)
+    roadrunner_text_2 = menu_button_font.render("- Health", True, WHITE)
+    roadrunner_text_3 = menu_button_font.render("+ Damage", True, WHITE)
+    roadrunner_text_4 = menu_button_font.render("Super Speed", True, WHITE)
+    roadrunner_text_5 = menu_button_font.render("- Fire Rate", True, WHITE)
+
+    cowboy_text_x = (cowboy_button_centerx - cowboy_text_1.get_rect().width/2)
+    ninja_text_x = (ninja_button_centerx - ninja_text_1.get_rect().width/2)
+    roadrunner_text_x = (roadrunner_button_centerx - roadrunner_text_1.get_rect().width/2)
+
+    while True:
+
+        # Getting mouse data
+        mouse_pos = pygame.mouse.get_pos()
+
+        screen.fill(BLACK)
+
+        # Drawing text for each set of buttons
+        
+        screen.blit(title_text, (ninja_button_centerx - title_text.get_rect().width/2, 30))
+        screen.blit(cowboy_text_1, (cowboy_button_centerx - cowboy_text_1.get_rect().width/2, 350))
+        screen.blit(cowboy_text_2, (cowboy_button_centerx - cowboy_text_2.get_rect().width/2, 400))
+        screen.blit(cowboy_text_3, (cowboy_button_centerx - cowboy_text_3.get_rect().width/2, 450))
+        screen.blit(cowboy_text_4, (cowboy_button_centerx - cowboy_text_4.get_rect().width/2, 500))
+        screen.blit(cowboy_text_5, (cowboy_button_centerx - cowboy_text_5.get_rect().width/2, 550))
+
+        screen.blit(ninja_text_1, (ninja_button_centerx - ninja_text_1.get_rect().width/2, 350))
+        screen.blit(ninja_text_2, (ninja_button_centerx - ninja_text_2.get_rect().width/2, 400))
+        screen.blit(ninja_text_3, (ninja_button_centerx - ninja_text_3.get_rect().width/2, 450))
+        screen.blit(ninja_text_4, (ninja_button_centerx - ninja_text_4.get_rect().width/2, 500))
+        screen.blit(ninja_text_5, (ninja_button_centerx - ninja_text_5.get_rect().width/2, 550))
+
+        screen.blit(roadrunner_text_1, (roadrunner_button_centerx - roadrunner_text_1.get_rect().width/2, 350))
+        screen.blit(roadrunner_text_2, (roadrunner_button_centerx - roadrunner_text_2.get_rect().width/2, 400))
+        screen.blit(roadrunner_text_3, (roadrunner_button_centerx - roadrunner_text_3.get_rect().width/2, 450))
+        screen.blit(roadrunner_text_4, (roadrunner_button_centerx - roadrunner_text_4.get_rect().width/2, 500))
+        screen.blit(roadrunner_text_5, (roadrunner_button_centerx - roadrunner_text_5.get_rect().width/2, 550))
+
+        # Check for hover
+        for button in playermenu_buttons:
+            button.draw(screen, mouse_pos)
+        pygame.display.flip()
+        # Check for clicking
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # Cycle through the buttons that can be clicked -> perform their action
+                if back_button.is_clicked(mouse_pos):
+                    main_menu()
+                elif player_1_button.is_clicked(mouse_pos):
+                    play(0)
+                elif player_2_button.is_clicked(mouse_pos):
+                    play(1)
+                elif player_3_button.is_clicked(mouse_pos):
+                    play(2)
+
+
+        clock.tick(60)
+
 def quit():
     pygame.quit()
     Scoreboard.export()
@@ -477,7 +552,6 @@ def scoreboard(default_score:Score = False):
 
     if default_score:
         sb.setDefaultIndex(default_score)
-        print("Set default score", sb.default_indices)
     
     while True:
         # Event handling
@@ -515,6 +589,20 @@ def scoreboard(default_score:Score = False):
 
 def main_menu():
 
+    # Position buttons
+    button_size = play_button.rect.size
+    x_center = (screen.get_width()-button_size[0]) // 2
+    play_button.setPos(x_center, 300)
+
+    y_space = screen.get_height() - button_size[1] - play_button.rect.top - 25
+    y_spacing = 130
+    x_offset = button_size[0] // 2 + 30
+
+    difficulty.setPos(x_center-x_offset, y_space+y_spacing)
+    scoreboard_button.setPos(x_center+x_offset, y_space+y_spacing)
+    options_button.setPos(x_center-x_offset, y_space+2*y_spacing)
+    quit_button.setPos(x_center+x_offset, y_space+2*y_spacing)
+
     MusicManager.play_song(menu, True)
 
     # Game loop
@@ -544,7 +632,7 @@ def main_menu():
                 # Cycle through the buttons that can be clicked -> perform their action
                 if play_button.is_clicked(mouse_pos):
                     MusicManager.play_soundfx(menuclick)
-                    play()
+                    player_select()
                 if options_button.is_clicked(mouse_pos):
                     MusicManager.play_soundfx(menuclick)
                     options()
@@ -554,13 +642,17 @@ def main_menu():
                 if scoreboard_button.is_clicked(mouse_pos):
                     MusicManager.play_soundfx(menuclick)
                     scoreboard()
+                if difficulty.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    change_difficulty()
+
                 
 
         pygame.display.flip()
         clock.tick(FRAME_RATE)
 
 def game_over(score:int, date:datetime):
-
+    SETTINGS.IN_GAME = False
     # Called after the player fades away 
 
     # Creating both fonts
@@ -625,6 +717,120 @@ def game_over(score:int, date:datetime):
     pygame.quit()
     sys.exit()
 
+def change_difficulty():
+    y_top = 160
+    y_spacing = 120
+    x_offset = 240
+    x_center = screen.get_width() // 2
+    bhw = diff_lighting_decrease.rect.width // 2
+    bh = diff_lighting_decrease.rect.height
+
+    diff_lighting_decrease.setPos(x_center-x_offset-bhw, y_top)
+    diff_lighting_increase.setPos(x_center+x_offset-bhw, y_top)
+    diff_enemyspwn_decrease.setPos(x_center-x_offset-bhw, y_top+y_spacing)
+    diff_enemyspwn_increase.setPos(x_center+x_offset-bhw, y_top+y_spacing)
+    diff_enemystr_decrease.setPos(x_center-x_offset-bhw, y_top+2*y_spacing)
+    diff_enemystr_increase.setPos(x_center+x_offset-bhw, y_top+2*y_spacing)
+
+    text_y_offset = (bh-diff_lighting_text.get_height()) // 2
+    lighting_text_x = x_center - (diff_lighting_text.get_width() // 2)
+    enemyspwn_text_x = x_center - (diff_enemyspwn_text.get_width() // 2)
+    enemystr_text_x = x_center - (diff_enemystr_text.get_width() // 2)
+
+    indicator_gap = 3
+    indicator_size = (
+        (2*x_offset - 11*indicator_gap - 2*bhw) // 10,
+        6
+    )
+    indicator_off = [x_center-x_offset+bhw, bh-indicator_size[1]]
+
+    indicator_full = pygame.Surface(indicator_size)
+    indicator_empty = indicator_full.copy()
+    indicator_full.fill(WHITE)
+    indicator_empty.fill((20,20,20))
+
+    back_button.setPos(280, 520)
+
+    while True:
+        mouse_pos = pygame.mouse.get_pos()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                need_recalc = True
+                if diff_lighting_decrease.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_LIGHTING_DIFFICULTY = min(10, max(1, SETTINGS.CFG_LIGHTING_DIFFICULTY-1))
+                elif diff_lighting_increase.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_LIGHTING_DIFFICULTY = min(10, max(1, SETTINGS.CFG_LIGHTING_DIFFICULTY+1))
+                elif diff_enemyspwn_decrease.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_ENEMY_RATE = min(10, max(1, SETTINGS.CFG_ENEMY_RATE-1))
+                elif diff_enemyspwn_increase.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_ENEMY_RATE = min(10, max(1, SETTINGS.CFG_ENEMY_RATE+1))
+                elif diff_enemystr_decrease.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_ENEMY_STRENGTH = min(10, max(1, SETTINGS.CFG_ENEMY_STRENGTH-1))
+                elif diff_enemystr_increase.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    SETTINGS.CFG_ENEMY_STRENGTH = min(10, max(1, SETTINGS.CFG_ENEMY_STRENGTH+1))
+                elif back_button.is_clicked(mouse_pos):
+                    MusicManager.play_soundfx(menuclick)
+                    main_menu()
+                else:
+                    need_recalc = False
+                if need_recalc: SETTINGS.RECALC()
+        
+        screen.fill(BLACK)
+        for button in difficulty_buttons:
+            button.draw(screen, mouse_pos)
+
+        for i in range(0, 10):
+            pos = (
+                i*(indicator_gap+indicator_size[0]) + indicator_gap + indicator_off[0],
+                y_top+indicator_off[1]
+            )
+            if (SETTINGS.CFG_LIGHTING_DIFFICULTY > i):
+                screen.blit(indicator_full, pos)
+            else:
+                screen.blit(indicator_empty, pos)
+
+        for i in range(0, 10):
+            pos = (
+                i*(indicator_gap+indicator_size[0]) + indicator_gap + indicator_off[0],
+                y_top+indicator_off[1]+y_spacing
+            )
+            if (SETTINGS.CFG_ENEMY_RATE > i):
+                screen.blit(indicator_full, pos)
+            else:
+                screen.blit(indicator_empty, pos)
+
+        for i in range(0, 10):
+            pos = (
+                i*(indicator_gap+indicator_size[0]) + indicator_gap + indicator_off[0],
+                y_top+indicator_off[1]+2*y_spacing
+            )
+            if (SETTINGS.CFG_ENEMY_STRENGTH > i):
+                screen.blit(indicator_full, pos)
+            else:
+                screen.blit(indicator_empty, pos)
+
+        screen.blit(diff_lighting_text, (lighting_text_x, y_top+text_y_offset))
+        screen.blit(diff_enemyspwn_text, (enemyspwn_text_x, y_top+text_y_offset+y_spacing))
+        screen.blit(diff_enemystr_text, (enemystr_text_x, y_top+text_y_offset+2*y_spacing))
+
+        diff_score_scale = menu_button_font.render("Score Multiplier: " + str(SETTINGS.SCORE_MULTIPLIER), True, WHITE)
+        screen.blit(diff_score_scale, (
+            x_center - diff_score_scale.get_width() // 2,
+            60
+        ))
+
+        pygame.display.flip()
+        clock.tick(SETTINGS.FRAMERATE)
+
 
 def enter_score(score_n:int, date:datetime):
     margins = 50
@@ -667,8 +873,7 @@ def enter_score(score_n:int, date:datetime):
         pygame.display.flip()
         clock.tick(SETTINGS.FRAMERATE)
 
-    
+
 
 
 main_menu()
-
