@@ -187,8 +187,7 @@ def play(player_type:int):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    quit()
             MusicManager.master_volume_game_change(event)
             if (SETTINGS.USE_DEBUG):
                 if event.type == pygame.KEYDOWN:
@@ -418,8 +417,7 @@ def options():
         # Check for clicking
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Cycle through the buttons that can be clicked -> perform their action
                 if back_button.is_clicked(mouse_pos):
@@ -529,8 +527,8 @@ def player_select():
         clock.tick(60)
 
 def quit():
-    pygame.quit()
     Scoreboard.export()
+    pygame.quit()
     sys.exit()
 
 def scoreboard(default_score:Score = False):
@@ -557,8 +555,7 @@ def scoreboard(default_score:Score = False):
         # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                quit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_KP_PLUS:
                     fs += 1
@@ -626,8 +623,7 @@ def main_menu():
         # Check for clicking
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # Cycle through the buttons that can be clicked -> perform their action
                 if play_button.is_clicked(mouse_pos):
@@ -685,8 +681,7 @@ def game_over(score:int, date:datetime):
         # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                quit()
             if event.type == pygame.KEYDOWN and gameover_alpha >= 200:
                 # Start decreasing opacity after keyboard hit
                 alpha_increase *= -1
@@ -712,10 +707,6 @@ def game_over(score:int, date:datetime):
 
         # Cap the frame rate
         clock.tick(FRAME_RATE)
-
-    # Quit Pygame
-    pygame.quit()
-    sys.exit()
 
 def change_difficulty():
     y_top = 160
@@ -848,8 +839,7 @@ def enter_score(score_n:int, date:datetime):
         # Event handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                quit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     es.checkClick(event.pos)
