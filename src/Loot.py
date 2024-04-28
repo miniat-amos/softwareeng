@@ -18,7 +18,7 @@ class Loot(Renderable.Renderable):
         self.filepath:str = self.folder
         match(val):
             case(Loot.LARGE):
-                self.filepath += "BlocK_Of_Gold.png"
+                self.filepath += "Block_of_Gold.png"
                 size = SETTINGS.LOOT_SIZE_LARGE
                 self.value = SETTINGS.LOOT_VALUE_LARGE
             case(Loot.MEDIUM):
